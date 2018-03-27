@@ -15,6 +15,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <vector>
+#include <algorithm>
+#include <sys/stat.h>
 
 #include "lib/json.hpp"
 
@@ -23,5 +25,17 @@ using json = nlohmann::json;
 
 const unsigned int VERSION = 1;
 const string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
+
+class InputParser{
+    public:
+        InputParser (int &argc, char **argv);
+        const string& getCmdOption(const string &option);
+        bool cmdOptionExists(const string &option);
+		bool findCmdHelp();
+    private:
+        vector <string> tokens;
+};
+
+bool isDirectory(const string &path);
 
 #endif

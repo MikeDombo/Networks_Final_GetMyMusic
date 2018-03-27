@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -g -Wall --std=c++11 -I lib
+CFLAGS=-c -g -Wall --std=c++11
 LDFLAGS=
 EXECUTABLE=Project4Server Project4Client
 
@@ -21,10 +21,10 @@ Project4Server.o: Project4Server.cpp
 	$(CC) $(CFLAGS) Project4Server.cpp -o Project4Server.o
 
 client: Project4Client
-	@./Project4Client 
+	@./Project4Client
 
 server: Project4Server
-	@./Project4Server 
+	@./Project4Server
 
 clean:
 	rm -f *.o $(EXECUTABLE)
