@@ -1,0 +1,16 @@
+{version: Int, type: ["list", "listResponse", "pull", "pullResponse", "leave"],
+
+IF TYPE == "listResponse" || TYPE == "pullResponse"
+  response: {
+    IF TYPE == "listResponse"
+      [{filename: String, checksum: String}]
+    IF TYPE == "pullResponse"
+      [{filename: String, checksum: String, data: String}]
+  }
+
+IF TYPE == "pull"
+  request: {
+    [{filename: String}]
+  }
+
+}
