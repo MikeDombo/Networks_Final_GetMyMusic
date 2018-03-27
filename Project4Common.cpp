@@ -135,3 +135,101 @@ vector<MusicData> list(const string& directory){
 
 	return l;
 }
+
+// Function taking hostname or IP address as a cstring and returning the appropriate internet address
+in_addr_t hostOrIPToInet(const string& host){
+	struct hostent *he;
+    struct in_addr **addr_list;
+
+    // Lookup the hostname and catch errors
+    if ((he = gethostbyname(host.c_str())) == NULL) {
+        perror("Unable to lookup host");
+		exit(1);
+    }
+	
+    // Get the list of possible IP addresses
+	addr_list = (struct in_addr **) he->h_addr_list;
+	
+    // Return the first possible IP converted to in_addr_t for use with the sockaddr_in struct
+	return inet_addr(inet_ntoa(*addr_list[0]));
+}
+
+/*
+ * Keep trying to receive until a specifc byte is read from the server
+ * 
+ */
+string receiveUntilByteEquals(int sock, char eq) {
+    char dataBuffer;
+    ssize_t bytesRead = 0;
+    string fullMessage;
+
+    while(true){
+        // Receive data
+        bytesRead = recv(sock, &dataBuffer, sizeof(dataBuffer), 0);
+
+        // Make sure read was successful
+        if(bytesRead < 0){
+            perror("Error receiving data");
+			return fullMessage;
+        }
+        // Make sure the socket wasn't closed
+        else if(bytesRead == 0){
+            perror("Unexpected end of transmission from server");
+			return fullMessage;
+        }
+
+        // Check if we received the end of transmission byte we were expecting
+        if (dataBuffer == eq) {
+            break;
+        }
+
+        // Append to our message buffer
+        fullMessage += dataBuffer;
+    }
+
+    return fullMessage;
+}
+
+void sendToSocket(int socket, const string& data) {
+	string myData = data + '\n';
+	if (send(socket, myData.c_str(), myData.size(), 0) < 0) {
+        perror("Could not send");
+		exit(1);
+    }
+}
+
+void sendToSocket(int socket, const json& data){
+	sendToSocket(socket, data.dump());
+}
+
+bool verifyJSONPacket(const json& data){
+	bool verified = true;
+
+	verified = verified && data.is_object() && data.count("version") == 1 
+			   && data.count("type") == 1 && data["version"] == VERSION 
+			   && data["type"].is_string();
+	
+	auto type = data["type"];
+	if(type == "list"){
+		return verified;
+	}
+	if(type == "listResponse"){
+		verified = verified && data.count("response") == 1
+				   && data["response"].is_array();
+		return verified;
+	}
+	if(type == "pullResponse"){
+		verified = verified && data.count("response") == 1
+				   && data["response"].is_array();
+		return verified;
+	}
+	if(type == "pull"){
+		verified = verified && data.count("request") == 1
+				   && data["request"].is_array();
+	}
+	if(type == "leave"){
+		return verified;
+	}
+	
+	return false;
+}

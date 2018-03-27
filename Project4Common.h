@@ -60,5 +60,10 @@ bool isDirectory(const string &path);
 vector<string> directoryFileListing(const string &path);
 string getFilename(const string& path);
 vector<MusicData> list(const string& directory);
+in_addr_t hostOrIPToInet(const string& host);
+string receiveUntilByteEquals(int sock, char eq);
+void sendToSocket(int socket, const string& data);
+void sendToSocket(int socket, const json& data);
+bool verifyJSONPacket(const json& data);
 
 #endif
