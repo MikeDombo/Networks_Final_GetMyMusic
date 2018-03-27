@@ -24,8 +24,8 @@ bool InputParser::cmdOptionExists(const string &option) {
 }
 
 bool InputParser::findCmdHelp(){
-	return this->cmdOptionExists("-h") || this->cmdOptionExists("--help") 
-	|| this->cmdOptionExists("/?") || this->cmdOptionExists("-?") 
+	return this->cmdOptionExists("-h") || this->cmdOptionExists("--help")
+	|| this->cmdOptionExists("/?") || this->cmdOptionExists("-?")
 	|| this->cmdOptionExists("?");
 }
 
@@ -68,10 +68,10 @@ string MusicData::b64Encode(){
 	ifstream input(this->path.c_str(), ios::binary);
     // copies all data into buffer
     vector<char> buffer((
-            istreambuf_iterator<char>(input)), 
+            istreambuf_iterator<char>(input)),
             (istreambuf_iterator<char>()));
 	string strBuffer(buffer.begin(), buffer.end());
-	
+
 	string encoding;
 	Base64 b64;
 	if(b64.Encode(strBuffer, &encoding)){

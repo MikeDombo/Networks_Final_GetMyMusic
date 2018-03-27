@@ -32,3 +32,4 @@
 *.app
 Project4Client
 Project4Server
+*.code-workspace

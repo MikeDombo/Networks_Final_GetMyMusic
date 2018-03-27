@@ -4,7 +4,7 @@ LDFLAGS=
 EXECUTABLE=Project4Server Project4Client
 
 all: Project4Client Project4Server
-	
+
 Project4Server: Project4Server.o Project4Common.o lib/CCRC32.o
 	$(CC) $(LDFLAGS) Project4Common.o Project4Server.o lib/CCRC32.o -o Project4Server
 

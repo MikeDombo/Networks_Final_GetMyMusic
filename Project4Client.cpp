@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 		string newDirectory = input.getCmdOption("-d");
 
 		if(!isDirectory(newDirectory)){
-			cout << "Could not access provided directory: " 
+			cout << "Could not access provided directory: "
 				<< newDirectory << ", are you sure that's a directory?" << endl;
 			exit(1);
 		}
@@ -39,11 +39,9 @@ int main(int argc, char** argv){
 		directory = directory + '/';
 	}
 
-	cout << serverHost << ":" << serverPort << endl;
-	cout << "Using directory: " << directory << endl;
 	for(auto m : list(directory)){
 		cout << m.getAsJSON(false).dump() << endl;
 	}
-	
+
 	return 0;
 }
