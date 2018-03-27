@@ -18,8 +18,12 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <fstream>
+#include <iterator>
 
 #include "lib/json.hpp"
+#include "lib/CCRC32.h"
+#include "lib/base64.h"
 
 using namespace std;
 using json = nlohmann::json;
@@ -29,15 +33,32 @@ const string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "l
 
 class InputParser{
     public:
-        InputParser (int &argc, char **argv);
+        InputParser(int &argc, char **argv);
         const string& getCmdOption(const string &option);
         bool cmdOptionExists(const string &option);
 		bool findCmdHelp();
     private:
-        vector <string> tokens;
+        vector<string> tokens;
+};
+
+class MusicData{
+	public:
+		MusicData(const string &path);
+		string getFilename();
+		json getAsJSON(bool withData);
+	private:
+		string b64Encode();
+		string makeChecksum();
+		int openFile();
+
+		string path;
+		string filename;
+		string checksum;
 };
 
 bool isDirectory(const string &path);
 vector<string> directoryFileListing(const string &path);
+string getFilename(const string& path);
+vector<MusicData> list(const string& directory);
 
 #endif

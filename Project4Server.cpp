@@ -33,6 +33,10 @@ int main(int argc, char** argv){
 		directory = newDirectory;
 	}
 
+	if(directory.back() != '/' && directory.back() != '\\'){
+		directory = directory + '/';
+	}
+
 	cout << "Listening to port: " << serverPort << endl;
 	cout << "Using directory: " << directory << endl;
 	

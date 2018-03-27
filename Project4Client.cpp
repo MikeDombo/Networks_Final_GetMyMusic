@@ -35,12 +35,14 @@ int main(int argc, char** argv){
 		directory = newDirectory;
 	}
 
+	if(directory.back() != '/' && directory.back() != '\\'){
+		directory = directory + '/';
+	}
+
 	cout << serverHost << ":" << serverPort << endl;
 	cout << "Using directory: " << directory << endl;
-
-	cout << endl << "Directory Listing:" << endl;
-	for(auto d : directoryFileListing(directory)){
-		cout << d << endl;
+	for(auto m : list(directory)){
+		cout << m.getAsJSON(false).dump() << endl;
 	}
 	
 	return 0;
