@@ -37,6 +37,11 @@ int main(int argc, char** argv){
 
 	cout << serverHost << ":" << serverPort << endl;
 	cout << "Using directory: " << directory << endl;
+
+	cout << endl << "Directory Listing:" << endl;
+	for(auto d : directoryFileListing(directory)){
+		cout << d << endl;
+	}
 	
 	return 0;
 }

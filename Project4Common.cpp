@@ -38,3 +38,24 @@ bool isDirectory(const string &path){
 	}
 	return false;
 }
+
+vector<string> directoryFileListing(const string &path){
+	vector<string> listing;
+	DIR *dir;
+	struct dirent *ent;
+	if ((dir = opendir(path.c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			auto testFileDir = string(ent->d_name);
+			if(!isDirectory(testFileDir)){
+				listing.push_back(testFileDir);
+			}
+		}
+		closedir (dir);
+	}
+	else {
+		perror("Couldn't open directory");
+		exit(1);
+	}
+
+	return listing;
+}

@@ -17,6 +17,7 @@
 #include <vector>
 #include <algorithm>
 #include <sys/stat.h>
+#include <dirent.h>
 
 #include "lib/json.hpp"
 
@@ -37,5 +38,6 @@ class InputParser{
 };
 
 bool isDirectory(const string &path);
+vector<string> directoryFileListing(const string &path);
 
 #endif
