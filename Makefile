@@ -3,7 +3,7 @@ CFLAGS=-c -g -Wall --std=c++11
 LDFLAGS=
 EXECUTABLE=Project4Server Project4Client
 
-all: Project4Client Project4Server
+all: testFiles Project4Client Project4Server
 
 Project4Server: Project4Server.o Project4Common.o lib/CCRC32.o
 	$(CC) $(LDFLAGS) Project4Common.o Project4Server.o lib/CCRC32.o -o Project4Server
@@ -24,10 +24,15 @@ lib/CCRC32.o: lib/CCRC32.cpp lib/CCRC32.h
 	$(CC) $(CFLAGS) lib/CCRC32.cpp -o lib/CCRC32.o
 
 client: Project4Client
-	@./Project4Client -p 30600 -s 127.0.0.1
+	@./Project4Client -p 30600 -s 127.0.0.1 -d ./testClientDir
 
 server: Project4Server
-	@./Project4Server -p 30600
+	@./Project4Server -p 30600 -d ./testServerDir
 
-clean:
+clean: testFiles
 	rm -f *.o $(EXECUTABLE)
+	
+testFiles:
+	@rm testClientDir/* testServerDir/* | true
+	@cp testBackupDir/client/* testClientDir/
+	@cp testBackupDir/server/* testServerDir/
