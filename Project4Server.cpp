@@ -1,6 +1,11 @@
 #include "Project4Common.h"
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::ios;
+using std::stringstream;
+using std::cout;
+using std::endl;
 
 void printHelp(char** argv){
 	cout << "Usage: " << *argv << " -p listeningPort [-d directory]" << endl;

@@ -1,6 +1,13 @@
 #include "Project4Common.h"
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::ios;
+using std::stringstream;
+using std::cout;
+using std::endl;
+using std::cin;
+using std::hex;
 
 int sock;
 
@@ -49,7 +56,8 @@ void sendListRequest(int sock){
 void cleanExit(int sock){
 	sendLeave(sock);
 	close(sock);
-	exit(0);
+	//exit(0);   // exit is "bad" and we need to properly exit userInteractionLoop
+  // to avoid warning -Winfinite-recursion
 }
 
 void handleGetList(int sock){
@@ -117,6 +125,7 @@ void userInteractionLoop(int sock){
 			break;
 		case 5:
 			cleanExit(sock);
+      return;
 			break;
 		default:
 			userInteractionLoop(sock);
