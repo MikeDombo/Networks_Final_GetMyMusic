@@ -15,10 +15,6 @@ public:
 
     JSON();
 
-    JSON(int i);
-
-    JSON(const unsigned int &i);
-
     JSON(double i);
 
     JSON(std::map <std::string, JSON> &m);
@@ -53,16 +49,6 @@ public:
 
     bool jIsString();
 
-    void set(const std::string &key, const JSON &value);
-
-    void set(const std::string &key, const std::vector <JSON> &value);
-
-    void set(int i, const JSON &value);
-
-    JSON get(const std::string &key);
-
-    JSON get(int i);
-
     friend std::ostream &operator<<(std::ostream &os, const JSON &j) {
         os << j.stringify();
         return os;
@@ -78,7 +64,7 @@ public:
 
     void unshift(const JSON &j);
 
-    unsigned int getLength();
+    unsigned long getLength();
 
     std::string getString();
 

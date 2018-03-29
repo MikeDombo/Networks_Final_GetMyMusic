@@ -17,10 +17,6 @@ JSON::JSON(const std::string &j) : JSON(j, false) {};
 
 JSON::JSON() {};
 
-JSON::JSON(int i) : JSON((double) i) {};
-
-JSON::JSON(const unsigned int &i) : JSON((double) i) {};
-
 JSON::JSON(double i) {
     this->isNumber = true;
     this->isPlain = true;
@@ -136,52 +132,6 @@ bool JSON::jIsNumber() { return this->isNumber; };
 
 bool JSON::jIsString() { return this->isString; };
 
-void JSON::set(const std::string &key, const JSON &value) {
-    if(this->isBlank()){
-        this->makeObject();
-    }
-    if (this->isObject) {
-        this->objectEls.emplace(key, value);
-    } else {
-        throw std::domain_error("Cannot set key:value pair on a non-object");
-    }
-}
-
-void JSON::set(const std::string &key, const std::vector <JSON> &value) {
-    if(this->isBlank()){
-        this->makeObject();
-    }
-    if (this->isObject) {
-        JSON j;
-        j.makeArray();
-        for (JSON v : value) {
-            j.push(v);
-        }
-        this->objectEls.emplace(key, j);
-    } else {
-        throw std::domain_error("Cannot set key:value pair on a non-object");
-    }
-}
-
-void JSON::set(int i, const JSON &value) {
-    if(this->isBlank()){
-        this->makeArray();
-    }
-    if (this->isArray) {
-        this->arrayEls[i] = value;
-    } else {
-        throw std::domain_error("Cannot set index on a non-array");
-    }
-}
-
-JSON JSON::get(const std::string &key) {
-    return this->operator[](key);
-}
-
-JSON JSON::get(int i) {
-    return this->operator[](i);
-}
-
 std::string JSON::getString() {
     if (this->isString) {
         return this->stringVal;
@@ -264,7 +214,7 @@ void JSON::unshift(const JSON &j) {
     }
 }
 
-unsigned int JSON::getLength() {
+unsigned long JSON::getLength() {
     if (this->isArray) {
         return this->arrayEls.size();
     }
@@ -414,26 +364,26 @@ JSON *JSON::begin() {
     if (this->isArray) {
         return &this->arrayEls[0];
     }
-    return NULL;
+    return nullptr;
 }
 
 const JSON *JSON::begin() const {
     if (this->isArray) {
         return &this->arrayEls[0];
     }
-    return NULL;
+    return nullptr;
 }
 
 JSON *JSON::end() {
     if (this->isArray) {
         return &this->arrayEls[this->arrayEls.size()];
     }
-    return NULL;
+    return nullptr;
 }
 
 const JSON *JSON::end() const {
     if (this->isArray) {
         return &this->arrayEls[this->arrayEls.size()];
     }
-    return NULL;
+    return nullptr;
 }
