@@ -43,7 +43,7 @@ void sendLeave(int sock) {
     json leavePacket;
 
     leavePacket["version"] = VERSION;
-    leavePacket["type"] = "leave";
+    leavePacket["type"] = std::string("leave");
     sendToSocket(sock, leavePacket);
 }
 
@@ -51,7 +51,7 @@ void sendListRequest(int sock) {
     json listRequestPacket;
 
     listRequestPacket["version"] = VERSION;
-    listRequestPacket["type"] = "list";
+    listRequestPacket["type"] = std::string("list");
     sendToSocket(sock, listRequestPacket);
 }
 

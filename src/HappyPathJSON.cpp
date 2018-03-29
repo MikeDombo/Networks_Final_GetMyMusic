@@ -96,7 +96,7 @@ void JSON::operator=(const std::string &s) {
         st = '"' + s + '"';
     }
     this->origString = st;
-    parse();
+    this->parse();
 }
 
 void JSON::operator=(double i) {
@@ -107,12 +107,18 @@ void JSON::operator=(double i) {
         parse();
     } else if (this->isNumber) {
         this->numberVal = i;
+    } else if (this->isBlank()){
+        this->numberVal = i;
+        this->isNumber = true;
     }
 }
 
 void JSON::operator=(bool b) {
     if (this->isBool) {
         this->boolVal = b;
+    } else if (this->isBlank()){
+        this->boolVal = b;
+        this->isBool = true;
     }
 }
 
