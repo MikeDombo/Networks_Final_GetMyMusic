@@ -41,17 +41,17 @@ int createTCPSocketAndConnect(const string &host, unsigned short serverPort) {
 
 void sendLeave(int sock) {
     json leavePacket;
-    leavePacket.makeObject();
-    leavePacket.set("version", json(VERSION));
-    leavePacket.set("type", json("leave", true));
+
+    leavePacket["version"] = VERSION;
+    leavePacket["type"] = "leave";
     sendToSocket(sock, leavePacket);
 }
 
 void sendListRequest(int sock) {
     json listRequestPacket;
-    listRequestPacket.makeObject();
-    listRequestPacket.set("version", json(VERSION));
-    listRequestPacket.set("type", json("list", true));
+
+    listRequestPacket["version"] = VERSION;
+    listRequestPacket["type"] = "list";
     sendToSocket(sock, listRequestPacket);
 }
 

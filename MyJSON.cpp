@@ -71,14 +71,62 @@ JSON &JSON::operator[](char c) {
 };
 
 JSON &JSON::operator[](const std::string &s) {
+    if(this->isBlank()){
+        this->makeObject();
+    }
     if (this->isObject) {
         if (!this->hasKey(s)) {
-            throw std::out_of_range("Key does not exist");
+            this->objectEls.emplace(s, JSON());
         }
         return this->objectEls.at(s);
     }
     throw std::domain_error("Cannot access the string key on a JSON non-object");
 };
+
+void JSON::operator=(const std::string &s){
+    std::string st = s;
+    bool numeric = !s.empty() && s.find_first_not_of("0123456789.-") == std::string::npos
+                   // Zero or one decimal
+                   && std::count(s.begin(), s.end(), '.') <= 1
+                   // Zero or one negative
+                   && std::count(s.begin(), s.end(), '-') <= 1
+                   // Negative at beginning or not at all
+                   && (s.find_first_of('-') == 0 || s.find_first_of('-') == std::string::npos);
+
+    if(s[0] != '"' && s[0] != '{' && s[0] != '[' && !numeric){
+        st = '"' + s + '"';
+    }
+    this->origString = st;
+    parse();
+}
+
+void JSON::operator=(int i){
+    this->operator=((double) i);
+}
+
+void JSON::operator=(double i){
+    std::stringstream ss;
+    ss << i;
+    this->origString = ss.str();
+    parse();
+}
+
+void JSON::operator=(const unsigned int &i){
+    this->operator=((double) i);
+}
+
+void JSON::operator=(const std::vector <JSON> &value){
+    if(this->isBlank()){
+        this->makeArray();
+    }
+    else{
+        this->isString = false;
+        this->isObject = false;
+        this->isNumber = false;
+        this->isPlain = false;
+    }
+    this->arrayEls.insert(std::end(this->arrayEls), std::begin(value), std::end(value));
+}
 
 bool JSON::jIsObject() { return this->isObject; };
 
@@ -89,6 +137,9 @@ bool JSON::jIsNumber() { return this->isNumber; };
 bool JSON::jIsString() { return this->isString; };
 
 void JSON::set(const std::string &key, const JSON &value) {
+    if(this->isBlank()){
+        this->makeObject();
+    }
     if (this->isObject) {
         this->objectEls.emplace(key, value);
     } else {
@@ -97,6 +148,9 @@ void JSON::set(const std::string &key, const JSON &value) {
 }
 
 void JSON::set(const std::string &key, const std::vector <JSON> &value) {
+    if(this->isBlank()){
+        this->makeObject();
+    }
     if (this->isObject) {
         JSON j;
         j.makeArray();
@@ -110,6 +164,9 @@ void JSON::set(const std::string &key, const std::vector <JSON> &value) {
 }
 
 void JSON::set(int i, const JSON &value) {
+    if(this->isBlank()){
+        this->makeArray();
+    }
     if (this->isArray) {
         this->arrayEls[i] = value;
     } else {
@@ -137,6 +194,10 @@ double JSON::getNumber() {
         return this->numberVal;
     }
     return 0;
+}
+
+bool JSON::isBlank() {
+    return !(this->isArray || this->isObject || this->isPlain);
 }
 
 std::string JSON::stringify() const {
@@ -172,26 +233,32 @@ std::string JSON::stringify() const {
 };
 
 void JSON::makeArray() {
-    if (this->isArray || this->isObject || this->isPlain) {
+    if (!this->isBlank()) {
         throw std::domain_error("Can only apply makeArray() to blank objects!");
     }
     this->isArray = true;
 }
 
 void JSON::makeObject() {
-    if (this->isArray || this->isObject || this->isPlain) {
+    if (!this->isBlank()) {
         throw std::domain_error("Can only apply makeObject() to blank objects!");
     }
     this->isObject = true;
 }
 
 void JSON::push(const JSON &j) {
+    if(this->isBlank()){
+        this->makeArray();
+    }
     if (this->isArray) {
         this->arrayEls.emplace_back(j);
     }
 }
 
 void JSON::unshift(const JSON &j) {
+    if(this->isBlank()){
+        this->makeArray();
+    }
     if (this->isArray) {
         this->arrayEls.emplace(this->arrayEls.begin(), j);
     }

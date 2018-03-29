@@ -61,11 +61,11 @@ string MusicData::getFilename() {
 
 json MusicData::getAsJSON(bool withData) {
     json fileJ = json();
-    fileJ.makeObject();
-    fileJ.set("filename", json(this->filename, true));
-    fileJ.set("checksum", json(this->checksum, true));
+
+    fileJ["filename"] = this->filename;
+    fileJ["checksum"] = this->checksum;
     if (withData) {
-        fileJ.set("data", json(b64Encode(), true));
+        fileJ["data"] = b64Encode();
     }
 
     return fileJ;

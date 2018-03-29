@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <algorithm>
 
 #ifndef MYJSON_H
 #define MYJSON_H
@@ -33,6 +34,16 @@ public:
     JSON &operator[](char c);
 
     JSON &operator[](const std::string &s);
+
+    void operator=(const std::string &s);
+
+    void operator=(int i);
+
+    void operator=(double i);
+
+    void operator=(const unsigned int &i);
+
+    void operator=(const std::vector <JSON> &value);
 
     bool jIsObject();
 
@@ -82,6 +93,8 @@ public:
     const JSON *end() const;
 
 private:
+    bool isBlank();
+
     static std::string trim(const std::string &);
 
     void parse();

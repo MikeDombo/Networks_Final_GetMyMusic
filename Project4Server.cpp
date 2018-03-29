@@ -21,10 +21,9 @@ void doListResponse(int sock, const string &directory) {
     }
 
     json listResponsePacket;
-    listResponsePacket.makeObject();
-    listResponsePacket.set("version", VERSION);
-    listResponsePacket.set("type", json("listResponse", true));
-    listResponsePacket.set("response", jsonFiles);
+    listResponsePacket["version"] = VERSION;
+    listResponsePacket["type"] = "listResponse";
+    listResponsePacket["response"] = jsonFiles;
     sendToSocket(sock, listResponsePacket);
 }
 
