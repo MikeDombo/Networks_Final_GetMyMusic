@@ -27,7 +27,6 @@
 using json = JSON;
 
 const double VERSION = 1.0;
-const std::string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
 const std::string BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const char BASE64_PAD_CHAR = '=';
 
