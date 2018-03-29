@@ -37,3 +37,4 @@ MyJSON
 .idea/*
 cmake-build-debug/*
 JSONTest
+OfflineTester
