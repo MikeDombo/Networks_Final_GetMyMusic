@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-c -g -Wall --std=c++11
 LDFLAGS=
-EXECUTABLE=Project4Server Project4Client
+EXECUTABLE=Project4Server Project4Client OfflineTester
 
 all: testFiles Project4Client Project4Server
 
@@ -10,6 +10,9 @@ Project4Server: Project4Server.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
 
 Project4Client: Project4Client.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
 	$(CC) $(LDFLAGS) Project4Common.o Project4Client.o lib/CCRC32.o HappyPathJSON.o -o Project4Client
+
+OfflineTester: OfflineTester.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
+	$(CC) $(LDFLAGS) OfflineTester.o Project4Common.o lib/CCRC32.o HappyPathJSON.o -o OfflineTester
 
 Project4Common.o: Project4Common.h Project4Common.cpp
 	$(CC) $(CFLAGS) Project4Common.cpp -o Project4Common.o
@@ -20,6 +23,9 @@ Project4Client.o: Project4Client.cpp
 Project4Server.o: Project4Server.cpp
 	$(CC) $(CFLAGS) Project4Server.cpp -o Project4Server.o
 
+OfflineTester.o: OfflineTester.cpp
+	$(CC) $(CFLAGS) OfflineTester.cpp -o OfflineTester.o
+
 lib/CCRC32.o: lib/CCRC32.cpp lib/CCRC32.h
 	$(CC) $(CFLAGS) lib/CCRC32.cpp -o lib/CCRC32.o
 
@@ -28,6 +34,9 @@ client: Project4Client
 
 server: Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
+
+tester: OfflineTester
+	@./OfflineTester
 
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
