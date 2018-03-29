@@ -19,6 +19,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <iterator>
+#include <exception>
 
 #include "HappyPathJSON.h"
 #include "lib/CCRC32.h"

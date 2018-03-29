@@ -8,6 +8,7 @@ using std::cout;
 using std::endl;
 using std::cin;
 using std::hex;
+using std::exception;
 
 int sock;
 
@@ -108,28 +109,37 @@ void userInteractionLoop(int sock) {
 
     string userInput;
     getline(cin, userInput);
-    int userChoice = stoi(userInput);
-    cout << endl;
+    if(userInput.size() <= 0){
+        std::cerr << "Please choose and option" << endl;
+    }
+    else{
+        try {
+            int userChoice = stoi(userInput);
+            cout << endl;
 
-    switch (userChoice) {
-        case 1:
-            handleGetList(sock);
-            break;
-        case 2:
-            handleGetDiff(sock);
-            break;
-        case 3:
-            handleDoSync(sock);
-            break;
-        case 4:
-            handleDoPull(sock);
-            break;
-        case 5:
-            cleanExit(sock);
-            return;
-        default:
-            userInteractionLoop(sock);
-            break;
+            switch (userChoice) {
+                case 1:
+                    handleGetList(sock);
+                    break;
+                case 2:
+                    handleGetDiff(sock);
+                    break;
+                case 3:
+                    handleDoSync(sock);
+                    break;
+                case 4:
+                    handleDoPull(sock);
+                    break;
+                case 5:
+                    cleanExit(sock);
+                    return;
+                default:
+                    break;
+            }
+        }
+        catch (exception& e){
+            perror(e.what());
+        }
     }
 
     // Loop back once we're done
