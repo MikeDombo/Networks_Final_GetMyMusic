@@ -8,7 +8,6 @@
 #include <stdio.h>      /* for printf() and fprintf() */
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
-#include <stdlib.h>     /* for atoi() */
 #include <string.h>     /* for memset() */
 #include <unistd.h>     /* for close() */
 #include <sys/types.h>
@@ -21,7 +20,7 @@
 #include <fstream>
 #include <iterator>
 
-#include "MyJSON.h"
+#include "HappyPathJSON.h"
 #include "lib/CCRC32.h"
 #include "lib/base64.h"
 

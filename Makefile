@@ -5,11 +5,11 @@ EXECUTABLE=Project4Server Project4Client
 
 all: testFiles Project4Client Project4Server
 
-Project4Server: Project4Server.o Project4Common.o lib/CCRC32.o MyJSON.o
-	$(CC) $(LDFLAGS) Project4Common.o Project4Server.o lib/CCRC32.o MyJSON.o -o Project4Server
+Project4Server: Project4Server.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
+	$(CC) $(LDFLAGS) Project4Common.o Project4Server.o lib/CCRC32.o HappyPathJSON.o -o Project4Server
 
-Project4Client: Project4Client.o Project4Common.o lib/CCRC32.o MyJSON.o
-	$(CC) $(LDFLAGS) Project4Common.o Project4Client.o lib/CCRC32.o MyJSON.o -o Project4Client
+Project4Client: Project4Client.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
+	$(CC) $(LDFLAGS) Project4Common.o Project4Client.o lib/CCRC32.o HappyPathJSON.o -o Project4Client
 
 Project4Common.o: Project4Common.h Project4Common.cpp
 	$(CC) $(CFLAGS) Project4Common.cpp -o Project4Common.o
@@ -32,8 +32,8 @@ server: Project4Server
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
 
-MyJSON.o: MyJSON.cpp MyJSON.h
-	$(CC) $(CFLAGS) MyJSON.cpp -o MyJSON.o
+HappyPathJSON.o: HappyPathJSON.cpp HappyPathJSON.h
+	$(CC) $(CFLAGS) HappyPathJSON.cpp -o HappyPathJSON.o
 	
 testFiles:
 	@rm testClientDir/* testServerDir/* | true

@@ -1,4 +1,4 @@
-#include "MyJSON.h"
+#include "HappyPathJSON.h"
 
 std::string JSON::trim(const std::string &str) {
     std::string s = str;

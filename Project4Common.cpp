@@ -80,8 +80,7 @@ string MusicData::b64Encode() {
     string strBuffer(buffer.begin(), buffer.end());
 
     string encoding;
-    Base64 b64;
-    if (b64.Encode(strBuffer, &encoding)) {
+    if (Base64::Encode(strBuffer, &encoding)) {
         return encoding;
     } else {
         perror("Base64 failed");
@@ -116,8 +115,8 @@ vector <string> directoryFileListing(const string &path) {
     vector <string> listing;
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir(thisPath.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
+    if ((dir = opendir(thisPath.c_str())) != nullptr) {
+        while ((ent = readdir(dir)) != nullptr) {
             auto testFileDir = string(ent->d_name);
             if (!isDirectory(testFileDir)) {
                 listing.push_back(thisPath + testFileDir);
