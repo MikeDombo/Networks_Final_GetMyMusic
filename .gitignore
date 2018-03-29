@@ -38,3 +38,4 @@ MyJSON
 cmake-build-debug/*
 JSONTest
 OfflineTester
+build/*
