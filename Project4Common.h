@@ -28,6 +28,8 @@ using json = JSON;
 
 const unsigned int VERSION = 1;
 const std::string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
+const std::string BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const char BASE64_PAD_CHAR = '=';
 
 class InputParser {
 public:
@@ -80,5 +82,7 @@ void sendToSocket(int socket, const std::string &data);
 void sendToSocket(int socket, const json &data);
 
 bool verifyJSONPacket(json &data);
+
+std::string base64Encode(const std::vector<char> &inputBuffer);
 
 #endif
