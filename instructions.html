@@ -1,0 +1,112 @@
+<html>
+  <head>
+    <title>Project 4</title>
+   </head>
+  <body>
+    <h1>Project 4: GetMyMusic!</h1>
+
+    <h2>Goal</h2>
+    <p>
+    The goal of Project 4 is for students to build <i>GetMyMusic!</i>,
+    a file/music synchronization application. Students will build both 
+    client and server capable of range of different functions.
+    </p>
+
+    <h2>Description</h2>
+    <p>
+      <b>Due:</b> Thursday, April 26, 5 p.m. <B>There will be no extension to this due date or time! 
+      Anything submitted after 5:00 pm on the 26th will not be accepted!</B><br>
+    <b>Points:</b> 60<br>
+    <b>Teams:</b> Students <i>must</i> work in groups of size 3. Students should note that all 
+    members of a team receive the same grade.
+    </p>
+
+    <p>
+    Like so many other people, Prof S is frustrated with the fact that
+    every machine he owns has a different collection of songs in his iTunes
+    library. Moreover, Prof S does not want to use iCloud to solve this
+    because he wants his music stored on his own devices, not on Apple's servers.
+    Students will solve this problem and develop <i>GetMyMusic!</i>, a
+    networked application that enables multiple machines to ensure that they
+    have the same files in their music directory. 
+    </p>
+
+    <p> 
+    Clients can send one of <b>4</b> messages to the server: 1) List Files (ask
+    the server to return a list of files it currently has); 2) Diff (based on
+    1)), the client should show a "diff" of the files it has in comparison to
+    the server - both files the server has that the client does not have, and files the client has and
+    the server does not have); 3) Sync (an operation that (using the information learned in 2))
+    pulls to the local device all files from the server that the local device
+    does not have and vice versa); and 4) Leave (the client should end its session
+    with the server and take care of any open connections). The server must be
+    multithreaded to handle multiple concurrent client requests (reads and
+    writes) and store/retrieve historical information about each client in a
+    file.  
+    </p>
+
+    <p>
+    In particular, the following functions will need to be implemented:
+    </p>
+    <ul>
+	<li><tt>LIST</tt> 
+	<li><tt>DIFF</tt> 
+	<li><tt>PULL</tt> 
+	<li><tt>LEAVE</tt> 
+    </ul>
+
+    <p>
+    Unlike your previous projects, no skeleton files will be provided. However,
+    I will instead provide design goals which must be met along the
+    path towards implementing this project. They are:
+    </p>
+
+    <ol>
+	<li> Students must develop an overview of the architecture they plan
+	to build that will achieve all of the above tasks. This should be
+	a written document, saved as a PDF. (3 pts)
+	<li> Given the above message types, students must define one or more
+	structs capable of carrying this information. (6 pts)
+	<li> Students must develop a centralized server capable of dealing
+	with multiple clients concurrently. You may use either pthreads
+	or select(), but you must justify your decision to do so. The 
+	server should indicate the current operation it is doing in the
+	terminal window. Also, "diff" must actually crawl the directory
+	structure and return all files in the current directory (you do
+	not need to open sub-directories). (21 pts)
+	<li> Students must develop a client implementing a simple 
+	interface to allow a user to enter their choices. (21 pts)
+	<li> Students must develop a means of robustly determining whether
+	or not two files, even if named differently, contain the same
+	content (without actually sending the entire file). (9 pts)
+    </ol>
+
+    <p>
+      As usual for this course, your execution environment is the Jepson Linux cluster.
+      (E.g., your client and server modules must compile and run on the Linux cluster, which is where
+      you will demo them to me.)
+    </p>
+
+    <h3>Other Notes</h3>
+    <p>
+    With the exception of the Berkeley Sockets API and the C++ standard libraries, no libraries may be used for this project. As this is a pedagogical exercise, students must write their implementations from scratch.
+    </p>
+
+    <h2>Submission Instructions</h2>
+    <p>
+      Each team is to turn in all their files as a single tarfile, submitted, as usual,
+      via email to Box (the email address to use is the one for Project 4). 
+      The tarfile should be named as follows: 
+      last_last_last-proj4.tar, where last-last-last represents the last names
+      of each of the 3 members of the group.
+    </p>
+
+    <p>
+      Each group <b>must</b> demo their project to me (with all group members present).
+      Demos, which should take about 15 minutes per team, will be held on Friday, April 27.
+      Note that not all groups need to be present for the demos -- I expect some will
+      be during lab, others at other times of the day.
+    </p>
+
+  </body>
+</html>

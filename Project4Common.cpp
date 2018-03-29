@@ -1,6 +1,12 @@
 #include "Project4Common.h"
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::hex;
+using std::ios;
+using std::stringstream;
+using std::ifstream;
+using std::istreambuf_iterator;
 
 InputParser::InputParser (int &argc, char **argv){
 	for (int i=1; i < argc; ++i){

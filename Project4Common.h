@@ -25,44 +25,43 @@
 #include "lib/CCRC32.h"
 #include "lib/base64.h"
 
-using namespace std;
 using json = nlohmann::json;
 
 const unsigned int VERSION = 1;
-const string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
+const std::string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
 
 class InputParser{
     public:
         InputParser(int &argc, char **argv);
-        const string& getCmdOption(const string &option);
-        bool cmdOptionExists(const string &option);
+        const std::string& getCmdOption(const std::string &option);
+        bool cmdOptionExists(const std::string &option);
 		bool findCmdHelp();
     private:
-        vector<string> tokens;
+        std::vector<std::string> tokens;
 };
 
 class MusicData{
 	public:
-		MusicData(const string &path);
-		string getFilename();
+		MusicData(const std::string &path);
+		std::string getFilename();
 		json getAsJSON(bool withData);
 	private:
-		string b64Encode();
-		string makeChecksum();
+		std::string b64Encode();
+		std::string makeChecksum();
 		int openFile();
 
-		string path;
-		string filename;
-		string checksum;
+		std::string path;
+		std::string filename;
+		std::string checksum;
 };
 
-bool isDirectory(const string &path);
-vector<string> directoryFileListing(const string &path);
-string getFilename(const string& path);
-vector<MusicData> list(const string& directory);
-in_addr_t hostOrIPToInet(const string& host);
-string receiveUntilByteEquals(int sock, char eq);
-void sendToSocket(int socket, const string& data);
+bool isDirectory(const std::string &path);
+std::vector<std::string> directoryFileListing(const std::string &path);
+std::string getFilename(const std::string& path);
+std::vector<MusicData> list(const std::string& directory);
+in_addr_t hostOrIPToInet(const std::string& host);
+std::string receiveUntilByteEquals(int sock, char eq);
+void sendToSocket(int socket, const std::string& data);
 void sendToSocket(int socket, const json& data);
 bool verifyJSONPacket(const json& data);
 
