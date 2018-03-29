@@ -1,3 +1,4 @@
+#include <iomanip>
 #include "HappyPathJSON.h"
 
 std::string JSON::trim(const std::string &str) {
@@ -19,23 +20,23 @@ JSON::JSON() {};
 
 JSON::JSON(double i) {
     this->isNumber = true;
-    this->isPlain = true;
     this->numberVal = i;
 };
 
-JSON::JSON(std::map <std::string, JSON> &m) {
+JSON::JSON(std::map<std::string, JSON> &m) {
     this->isObject = true;
     this->objectEls = m;
 };
 
-JSON::JSON(std::vector <JSON> &js) {
+JSON::JSON(std::vector<JSON> &js) {
     this->isArray = true;
     this->arrayEls = js;
 }
 
 JSON::JSON(const std::string &j, bool plainString) {
     if (plainString) {
-        this->isString = true, this->stringVal = j, this->isPlain = true;
+        this->isString = true;
+        this->stringVal = j;
     } else {
         this->origString = j;
         parse();
@@ -62,13 +63,12 @@ JSON &JSON::operator[](int i) {
     throw std::domain_error("Cannot access the numeric index of JSON non-array");
 };
 
-JSON &JSON::operator[](char c) {
-    return this->operator[](std::string() + c);
-};
-
 JSON &JSON::operator[](const std::string &s) {
-    if(this->isBlank()){
+    if (this->isBlank()) {
         this->makeObject();
+    }
+    if (JSON::isNumeric(s)) {
+        return this->operator[](std::stoi(s));
     }
     if (this->isObject) {
         if (!this->hasKey(s)) {
@@ -79,64 +79,59 @@ JSON &JSON::operator[](const std::string &s) {
     throw std::domain_error("Cannot access the string key on a JSON non-object");
 };
 
-void JSON::operator=(const std::string &s){
-    std::string st = s;
-    bool numeric = !s.empty() && s.find_first_not_of("0123456789.-") == std::string::npos
-                   // Zero or one decimal
-                   && std::count(s.begin(), s.end(), '.') <= 1
-                   // Zero or one negative
-                   && std::count(s.begin(), s.end(), '-') <= 1
-                   // Negative at beginning or not at all
-                   && (s.find_first_of('-') == 0 || s.find_first_of('-') == std::string::npos);
+bool JSON::isNumeric(const std::string &s) {
+    return !s.empty() && s.find_first_not_of("0123456789.-") == std::string::npos
+           // Zero or one decimal
+           && std::count(s.begin(), s.end(), '.') <= 1
+           // Zero or one negative
+           && std::count(s.begin(), s.end(), '-') <= 1
+           // Negative at beginning or not at all
+           && (s.find_first_of('-') == 0 || s.find_first_of('-') == std::string::npos);
+}
 
-    if(s[0] != '"' && s[0] != '{' && s[0] != '[' && !numeric){
+void JSON::operator=(const std::string &s) {
+    std::string st = s;
+
+    if (s[0] != '"' && s[0] != '{' && s[0] != '[' && !JSON::isNumeric(s)) {
         st = '"' + s + '"';
     }
     this->origString = st;
     parse();
 }
 
-void JSON::operator=(int i){
-    this->operator=((double) i);
-}
-
-void JSON::operator=(double i){
-    std::stringstream ss;
-    ss << i;
-    this->origString = ss.str();
-    parse();
-}
-
-void JSON::operator=(const unsigned int &i){
-    this->operator=((double) i);
-}
-
-void JSON::operator=(const std::vector <JSON> &value){
-    if(this->isBlank()){
-        this->makeArray();
+void JSON::operator=(double i) {
+    if (this->isString) {
+        std::stringstream ss;
+        ss << i;
+        this->origString = ss.str();
+        parse();
+    } else if (this->isNumber) {
+        this->numberVal = i;
     }
-    else{
+}
+
+void JSON::operator=(bool b) {
+    if (this->isBool) {
+        this->boolVal = b;
+    }
+}
+
+void JSON::operator=(const std::vector<JSON> &value) {
+    if (this->isBlank()) {
+        this->makeArray();
+    } else {
         this->isString = false;
         this->isObject = false;
         this->isNumber = false;
-        this->isPlain = false;
     }
     this->arrayEls.insert(std::end(this->arrayEls), std::begin(value), std::end(value));
 }
-
-bool JSON::jIsObject() { return this->isObject; };
-
-bool JSON::jIsArray() { return this->isArray; };
-
-bool JSON::jIsNumber() { return this->isNumber; };
-
-bool JSON::jIsString() { return this->isString; };
 
 std::string JSON::getString() {
     if (this->isString) {
         return this->stringVal;
     }
-    return NULL;
+    return nullptr;
 }
 
 double JSON::getNumber() {
@@ -146,8 +141,15 @@ double JSON::getNumber() {
     return 0;
 }
 
+bool JSON::getBool() {
+    if (this->isBool) {
+        return this->boolVal;
+    }
+    return false;
+}
+
 bool JSON::isBlank() {
-    return !(this->isArray || this->isObject || this->isPlain);
+    return !(this->isArray || this->isObject || this->isNumber || this->isString || this->isNull || this->isBool);
 }
 
 std::string JSON::stringify() const {
@@ -172,12 +174,18 @@ std::string JSON::stringify() const {
             }
         }
         ss << '}';
-    } else if (this->isPlain) {
-        if (this->isNumber) {
-            ss << this->numberVal;
-        } else if (this->isString) {
-            ss << '"' << this->stringVal << '"';
+    } else if (this->isNumber) {
+        ss << this->numberVal;
+    } else if (this->isString) {
+        ss << '"' << this->getEscapedString() << '"';
+    } else if (this->isBool) {
+        if (this->boolVal) {
+            ss << "true";
+        } else {
+            ss << "false";
         }
+    } else if (this->isNull) {
+        ss << "null";
     }
     return ss.str();
 };
@@ -189,6 +197,13 @@ void JSON::makeArray() {
     this->isArray = true;
 }
 
+void JSON::makeNull() {
+    if (!this->isBlank()) {
+        throw std::domain_error("Can only apply makeNull() to blank objects!");
+    }
+    this->isNull = true;
+}
+
 void JSON::makeObject() {
     if (!this->isBlank()) {
         throw std::domain_error("Can only apply makeObject() to blank objects!");
@@ -197,7 +212,7 @@ void JSON::makeObject() {
 }
 
 void JSON::push(const JSON &j) {
-    if(this->isBlank()){
+    if (this->isBlank()) {
         this->makeArray();
     }
     if (this->isArray) {
@@ -206,7 +221,7 @@ void JSON::push(const JSON &j) {
 }
 
 void JSON::unshift(const JSON &j) {
-    if(this->isBlank()){
+    if (this->isBlank()) {
         this->makeArray();
     }
     if (this->isArray) {
@@ -231,6 +246,7 @@ unsigned long JSON::getLength() {
 void JSON::parse() {
     std::string s = this->origString;
     s = this->trim(s);
+    this->origString = s;
 
     if (s[0] == '[' && s.back() == ']') {
         this->isArray = true;
@@ -239,30 +255,162 @@ void JSON::parse() {
         this->isObject = true;
         parseObject();
     } else {
-        this->isPlain = true;
         if (s[0] == '"' && s.back() == '"') {
             this->isString = true;
-            stringVal = s.substr(1, s.length() - 2);
+            // Remove quotes
+            std::string st = s.substr(1, s.length() - 2);
+
+            bool isEscaping = false;
+            // Initialize blank string
+            this->stringVal = std::string();
+            for (char c : st) {
+                if (c == '\\') {
+                    isEscaping = !isEscaping;
+                    continue;
+                }
+                if (isEscaping) {
+                    if (c == 'u') {
+                        this->stringVal += '\\';
+                        this->stringVal += c;
+                    } else {
+                        this->stringVal = doUnescape(this->stringVal, c);
+                    }
+
+                    isEscaping = false;
+                    continue;
+                }
+
+                this->stringVal += c;
+            }
         } else {
-            this->isNumber = true;
-            this->numberVal = std::stod(s);
+            if (s == "true") {
+                this->isBool = true;
+                this->boolVal = true;
+            } else if (s == "false") {
+                this->isBool = true;
+                this->boolVal = false;
+            } else if (s == "null") {
+                this->isNull = true;
+            } else {
+                this->isNumber = true;
+                this->numberVal = std::stod(s);
+            }
         }
     }
 };
 
+std::string JSON::getStringWithUnicode() {
+    if (!this->isString) {
+        return nullptr;
+    }
+
+    bool isEscaping = false;
+    bool unicode = false;
+    int unicodeCount = 0;
+    // Initialize blank string
+    std::string newString = std::string();
+    for (char c : this->stringVal) {
+        if (c == '\\') {
+            isEscaping = !isEscaping;
+            continue;
+        }
+        if (isEscaping) {
+            if (c == 'u') {
+                unicode = true;
+                unicodeCount = 0;
+            } else {
+                newString = doUnescape(newString, c);
+            }
+
+            isEscaping = false;
+            continue;
+        }
+
+        newString += c;
+
+        if (unicode) {
+            if (unicodeCount++ >= 3) {
+                std::string unicodeHex = newString.substr(newString.size() - 4, 4);
+
+                // Remove unicode codepoint and insert unicode character
+                newString = newString.substr(0, newString.size() - 4) +
+                            this->convertToUnicode(unicodeHex);
+
+                unicode = false;
+                unicodeCount = 0;
+                continue;
+            }
+        }
+    }
+
+    return newString;
+}
+
+std::string JSON::convertToUnicode(const std::string &s) {
+    std::string ret;
+    int codepoint = 0;
+    const auto factors = {12, 8, 4, 0};
+    char current = s[0];
+    int i = 0;
+    for (const auto factor : factors) {
+        if (current >= '0' and current <= '9') {
+            codepoint += ((current - 0x30) << factor);
+        } else if (current >= 'A' and current <= 'F') {
+            codepoint += ((current - 0x37) << factor);
+        } else if (current >= 'a' and current <= 'f') {
+            codepoint += ((current - 0x57) << factor);
+        }
+        current = s[++i];
+    }
+
+    if (codepoint < 0x80) {
+        // 1-byte characters: 0xxxxxxx (ASCII)
+        ret += codepoint;
+    } else if (codepoint <= 0x7FF) {
+        // 2-byte characters: 110xxxxx 10xxxxxx
+        ret += (0xC0 | (codepoint >> 6));
+        ret += (0x80 | (codepoint & 0x3F));
+    } else if (codepoint <= 0xFFFF) {
+        // 3-byte characters: 1110xxxx 10xxxxxx 10xxxxxx
+        ret += (0xE0 | (codepoint >> 12));
+        ret += (0x80 | ((codepoint >> 6) & 0x3F));
+        ret += (0x80 | (codepoint & 0x3F));
+    } else {
+        // 4-byte characters: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        ret += (0xF0 | (codepoint >> 18));
+        ret += (0x80 | ((codepoint >> 12) & 0x3F));
+        ret += (0x80 | ((codepoint >> 6) & 0x3F));
+        ret += (0x80 | (codepoint & 0x3F));
+    }
+
+    return ret;
+}
+
 void JSON::parseArray() {
     std::string s = this->origString;
+    bool empty = true;
 
     int arrayLevel = -1;
     int objectLevel = 0;
+    bool isEscaping = false;
     bool quotes = false;
     std::string singleElement;
     for (char c : s) {
+        if (c == '\\') {
+            isEscaping = !isEscaping;
+            continue;
+        }
+
         // Track usage of quotes
-        if (c == '\"') {
+        if (c == '"' && !isEscaping) {
             quotes = !quotes;
             singleElement += c;
             continue;
+        }
+
+        // Keep escapes that aren't escaping quotes
+        if (isEscaping) {
+            singleElement += '\\';
         }
 
         // Count sub objects so that they are interpreted as values and not flattened
@@ -275,7 +423,9 @@ void JSON::parseArray() {
         // Current array ended, push values to vector and reset
         if (!quotes && arrayLevel == 0 && c == ']' && objectLevel <= 0) {
             arrayLevel--;
-            this->arrayEls.push_back(JSON(singleElement));
+            if (!empty) {
+                this->arrayEls.push_back(JSON(singleElement));
+            }
             singleElement = std::string();
         } else if (!quotes && arrayLevel == -1 && c == '[') {
             arrayLevel++;
@@ -288,18 +438,49 @@ void JSON::parseArray() {
         }
             // Separate elements by comma
         else if (!quotes && arrayLevel <= 0 && c == ',' && objectLevel <= 0) {
-            this->arrayEls.push_back(JSON(singleElement));
+            if (!empty) {
+                this->arrayEls.push_back(JSON(singleElement));
+            }
             singleElement = std::string();
         } else {
             singleElement += c;
         }
+
+        if (singleElement.size() > 0) {
+            empty = false;
+        }
+
+        isEscaping = false;
     }
 };
 
+std::string JSON::doUnescape(const std::string &s, char c) {
+    std::string ret = s;
+    if (c == 't') {
+        ret += '\t';
+    } else if (c == 'n') {
+        ret += '\n';
+    } else if (c == '/') {
+        ret += '/';
+    } else if (c == 'b') {
+        ret += '\b';
+    } else if (c == 'f') {
+        ret += '\f';
+    } else if (c == 'r') {
+        ret += '\r';
+    } else if (c == '"') {
+        ret += '"';
+    }
+
+    return ret;
+}
+
 void JSON::parseObject() {
     std::string s = this->origString;
+    bool empty = true;
 
     bool quotes = false;
+    bool isEscaping = false;
     bool isKey = true;
     int objectLevel = -1;
     int arrayLevel = 0;
@@ -308,12 +489,28 @@ void JSON::parseObject() {
     std::string key;
     for (char c : s) {
         // Track quote usage
-        if (c == '\"') {
+        if (c == '"' && !isEscaping) {
             quotes = !quotes;
-            if (!isKey) {
+            if (isKey) {
+                key += c;
+            } else {
                 element += c;
             }
             continue;
+        }
+
+        if (c == '\\') {
+            isEscaping = !isEscaping;
+            continue;
+        }
+
+        // Keep escapes that aren't escaping quotes
+        if (isEscaping) {
+            if (isKey) {
+                key += '\\';
+            } else {
+                element += '\\';
+            }
         }
 
         // Count sub objects so that they are interpreted as values and not flattened
@@ -338,7 +535,7 @@ void JSON::parseObject() {
         // Start new key:value pair
         if (!quotes && c == ',' && objectLevel <= 0 && arrayLevel <= 0) {
             isKey = true;
-            this->objectEls.emplace(key, JSON(element));
+            this->objectEls.emplace(JSON(key).getString(), JSON(element));
             key = std::string();
             element = std::string();
         }
@@ -353,11 +550,17 @@ void JSON::parseObject() {
         }
             // Write into value
         else {
+            empty = false;
             element += c;
         }
+
+        isEscaping = false;
     }
-    // Add last element (no comma to break loop as in other values)
-    this->objectEls.emplace(key, JSON(element));
+
+    if (!empty) {
+        // Add last element (no comma to break loop as in other values)
+        this->objectEls.emplace(JSON(key).getString(), JSON(element));
+    }
 };
 
 JSON *JSON::begin() {
@@ -386,4 +589,57 @@ const JSON *JSON::end() const {
         return &this->arrayEls[this->arrayEls.size()];
     }
     return nullptr;
+}
+
+std::string JSON::getEscapedString() const {
+    if (this->isString) {
+        std::stringstream ss;
+        for (size_t i = 0; i < this->stringVal.size(); i++) {
+            char codepoint = this->stringVal[i];
+            switch (codepoint) {
+                case 0x08: {
+                    ss << '\\';
+                    ss << 'b';
+                    break;
+                }
+                case 0x09: {
+                    ss << '\\';
+                    ss << 't';
+                    break;
+                }
+                case 0x0A: {
+                    ss << '\\';
+                    ss << 'n';
+                    break;
+                }
+                case 0x0C: {
+                    ss << '\\';
+                    ss << 'f';
+                    break;
+                }
+                case 0x0D: {
+                    ss << '\\';
+                    ss << 'r';
+                    break;
+                }
+                case 0x22: {
+                    ss << '\\';
+                    ss << '\"';
+                    break;
+                }
+                case 0x5C: {
+                    ss << '\\';
+                    if (this->stringVal[i + 1] != 'u') {
+                        ss << '\\';
+                    }
+                    break;
+                }
+                default:
+                    ss << codepoint;
+                    break;
+            }
+        }
+        return ss.str();
+    }
+    return std::string();
 }

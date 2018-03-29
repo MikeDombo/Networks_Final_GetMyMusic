@@ -60,7 +60,7 @@ public:
     bool findCmdHelp();
 
 private:
-    std::vector <std::string> tokens;
+    std::vector<std::string> tokens;
 };
 
 class MusicData {
@@ -85,11 +85,11 @@ private:
 
 bool isDirectory(const std::string &path);
 
-std::vector <std::string> directoryFileListing(const std::string &path);
+std::vector<std::string> directoryFileListing(const std::string &path);
 
 std::string getFilename(const std::string &path);
 
-std::vector <MusicData> list(const std::string &directory);
+std::vector<MusicData> list(const std::string &directory);
 
 in_addr_t hostOrIPToInet(const std::string &host);
 

@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <cstdio>
 
 #ifndef MYJSON_H
 #define MYJSON_H
@@ -17,9 +18,9 @@ public:
 
     JSON(double i);
 
-    JSON(std::map <std::string, JSON> &m);
+    JSON(std::map<std::string, JSON> &m);
 
-    JSON(std::vector <JSON> &js);
+    JSON(std::vector<JSON> &js);
 
     JSON(const std::string &j, bool plainString);
 
@@ -27,27 +28,27 @@ public:
 
     JSON &operator[](int i);
 
-    JSON &operator[](char c);
-
     JSON &operator[](const std::string &s);
 
     void operator=(const std::string &s);
 
-    void operator=(int i);
-
     void operator=(double i);
 
-    void operator=(const unsigned int &i);
+    void operator=(bool b);
 
-    void operator=(const std::vector <JSON> &value);
+    void operator=(const std::vector<JSON> &value);
 
-    bool jIsObject();
+    bool jIsObject() { return this->isObject; };
 
-    bool jIsArray();
+    bool jIsArray() { return this->isArray; };
 
-    bool jIsNumber();
+    bool jIsNumber() { return this->isNumber; };
 
-    bool jIsString();
+    bool jIsString() { return this->isString; };
+
+    bool jIsBool() { return this->isBool; };
+
+    bool jIsNull() { return this->isNull; };
 
     friend std::ostream &operator<<(std::ostream &os, const JSON &j) {
         os << j.stringify();
@@ -78,6 +79,14 @@ public:
 
     const JSON *end() const;
 
+    bool getBool();
+
+    void makeNull();
+
+    std::string getEscapedString() const;
+
+    std::string getStringWithUnicode();
+
 private:
     bool isBlank();
 
@@ -89,16 +98,24 @@ private:
 
     void parseObject();
 
-    std::vector <JSON> arrayEls;
-    std::map <std::string, JSON> objectEls;
+    std::vector<JSON> arrayEls;
+    std::map<std::string, JSON> objectEls;
     std::string stringVal;
     double numberVal;
+    bool boolVal;
     std::string origString;
     bool isObject = false;
-    bool isPlain = false;
+    bool isBool = false;
+    bool isNull = false;
     bool isArray = false;
     bool isString = false;
     bool isNumber = false;
+
+    std::string doUnescape(const std::string &s, char c);
+
+    static std::string convertToUnicode(const std::string &s);
+
+    static bool isNumeric(const std::string &s);
 };
 
 #endif

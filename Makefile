@@ -26,6 +26,9 @@ Project4Server.o: Project4Server.cpp
 OfflineTester.o: OfflineTester.cpp
 	$(CC) $(CFLAGS) OfflineTester.cpp -o OfflineTester.o
 
+JSONTest.o: JSONTest.cpp
+	$(CC) $(CFLAGS) JSONTest.cpp -o JSONTest.o
+
 lib/CCRC32.o: lib/CCRC32.cpp lib/CCRC32.h
 	$(CC) $(CFLAGS) lib/CCRC32.cpp -o lib/CCRC32.o
 
@@ -37,6 +40,9 @@ server: Project4Server
 
 tester: OfflineTester
 	@./OfflineTester
+
+JSONTest: JSONTest.o HappyPathJSON.o
+	$(CC) $(LDFLAGS) JSONTest.o HappyPathJSON.o -o JSONTest
 
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
