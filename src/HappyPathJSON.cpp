@@ -649,3 +649,18 @@ std::string JSON::getEscapedString() const {
     }
     return std::string();
 }
+
+void JSON::operator=(const JSON &s) {
+    this->arrayEls = s.arrayEls;
+    this->objectEls = s.objectEls;
+    this->stringVal = s.stringVal;
+    this->numberVal = s.numberVal;
+    this->boolVal = s.boolVal;
+    this->origString = s.origString;
+    this->isObject = s.isObject;
+    this->isBool = s.isBool;
+    this->isNull = s.isNull;
+    this->isArray = s.isArray;
+    this->isString = s.isString;
+    this->isNumber = s.isNumber;
+}
