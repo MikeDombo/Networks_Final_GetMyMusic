@@ -3,31 +3,31 @@ CFLAGS=-c -g -Wall --std=c++11
 LDFLAGS=
 EXECUTABLE=Project4Server Project4Client OfflineTester JSONTest
 
-all: testFiles Project4Client Project4Server
+all: testFiles Project4Client Project4Server OfflineTester JSONTest
 
 Project4Server: Project4Server.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
-	$(CC) $(LDFLAGS) Project4Common.o Project4Server.o lib/CCRC32.o HappyPathJSON.o -o Project4Server
+	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Server.o build/CCRC32.o build/HappyPathJSON.o -o Project4Server
 
 Project4Client: Project4Client.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
-	$(CC) $(LDFLAGS) Project4Common.o Project4Client.o lib/CCRC32.o HappyPathJSON.o -o Project4Client
+	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Client.o build/CCRC32.o build/HappyPathJSON.o -o Project4Client
 
 OfflineTester: OfflineTester.o Project4Common.o lib/CCRC32.o HappyPathJSON.o
-	$(CC) $(LDFLAGS) OfflineTester.o Project4Common.o lib/CCRC32.o HappyPathJSON.o -o OfflineTester
+	$(CC) $(LDFLAGS) build/OfflineTester.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o -o OfflineTester
 
-Project4Common.o: Project4Common.h Project4Common.cpp
-	$(CC) $(CFLAGS) Project4Common.cpp -o Project4Common.o
+Project4Common.o: src/Project4Common.h src/Project4Common.cpp
+	$(CC) $(CFLAGS) src/Project4Common.cpp -o build/Project4Common.o
 
-Project4Client.o: Project4Client.cpp
-	$(CC) $(CFLAGS) Project4Client.cpp -o Project4Client.o
+Project4Client.o: src/Project4Client.cpp
+	$(CC) $(CFLAGS) src/Project4Client.cpp -o build/Project4Client.o
 
-Project4Server.o: Project4Server.cpp
-	$(CC) $(CFLAGS) Project4Server.cpp -o Project4Server.o
+Project4Server.o: src/Project4Server.cpp
+	$(CC) $(CFLAGS) src/Project4Server.cpp -o build/Project4Server.o
 
-OfflineTester.o: OfflineTester.cpp
-	$(CC) $(CFLAGS) OfflineTester.cpp -o OfflineTester.o
+OfflineTester.o: src/OfflineTester.cpp
+	$(CC) $(CFLAGS) src/OfflineTester.cpp -o build/OfflineTester.o
 
-lib/CCRC32.o: lib/CCRC32.cpp lib/CCRC32.h
-	$(CC) $(CFLAGS) lib/CCRC32.cpp -o lib/CCRC32.o
+lib/CCRC32.o: src/lib/CCRC32.cpp src/lib/CCRC32.h
+	$(CC) $(CFLAGS) src/lib/CCRC32.cpp -o build/CCRC32.o
 
 client: Project4Client
 	@./Project4Client -p 30600 -s 127.0.0.1 -d ./testClientDir
@@ -35,20 +35,21 @@ client: Project4Client
 server: Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
 
-JSONTest.o: JSONTest.cpp
-	$(CC) $(CFLAGS) JSONTest.cpp -o JSONTest.o
+JSONTest.o: src/JSONTest.cpp
+	$(CC) $(CFLAGS) src/JSONTest.cpp -o build/JSONTest.o
 
 JSONTest: JSONTest.o HappyPathJSON.o
-	$(CC) $(LDFLAGS) JSONTest.o HappyPathJSON.o -o JSONTest
+	$(CC) $(LDFLAGS) build/JSONTest.o build/HappyPathJSON.o -o JSONTest
 
 tester: OfflineTester
 	@./OfflineTester
 
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
+	rm -f build/*
 
-HappyPathJSON.o: HappyPathJSON.cpp HappyPathJSON.h
-	$(CC) $(CFLAGS) HappyPathJSON.cpp -o HappyPathJSON.o
+HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
+	$(CC) $(CFLAGS) src/HappyPathJSON.cpp -o build/HappyPathJSON.o
 	
 testFiles:
 	@rm testClientDir/* testServerDir/* | true
