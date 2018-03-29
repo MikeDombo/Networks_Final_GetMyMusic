@@ -21,11 +21,11 @@
 #include <fstream>
 #include <iterator>
 
-#include "lib/json.hpp"
+#include "MyJSON.h"
 #include "lib/CCRC32.h"
 #include "lib/base64.h"
 
-using json = nlohmann::json;
+using json = JSON;
 
 const unsigned int VERSION = 1;
 const std::string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
@@ -63,6 +63,6 @@ in_addr_t hostOrIPToInet(const std::string& host);
 std::string receiveUntilByteEquals(int sock, char eq);
 void sendToSocket(int socket, const std::string& data);
 void sendToSocket(int socket, const json& data);
-bool verifyJSONPacket(const json& data);
+bool verifyJSONPacket(json& data);
 
 #endif

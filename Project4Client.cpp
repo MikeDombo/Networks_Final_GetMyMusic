@@ -41,15 +41,17 @@ int createTCPSocketAndConnect(const string& host, unsigned short serverPort) {
 
 void sendLeave(int sock){
 	json leavePacket;
-	leavePacket["version"] = VERSION;
-	leavePacket["type"] = "leave";
+	leavePacket.makeObject();
+	leavePacket.set("version", json(VERSION));
+	leavePacket.set("type", json("leave", true));
 	sendToSocket(sock, leavePacket);
 }
 
 void sendListRequest(int sock){
 	json listRequestPacket;
-	listRequestPacket["version"] = VERSION;
-	listRequestPacket["type"] = "list";
+    listRequestPacket.makeObject();
+    listRequestPacket.set("version", json(VERSION));
+    listRequestPacket.set("type", json("list", true));
 	sendToSocket(sock, listRequestPacket);
 }
 
@@ -63,15 +65,15 @@ void cleanExit(int sock){
 void handleGetList(int sock){
 	sendListRequest(sock);
 	auto answer = receiveUntilByteEquals(sock, '\n');
-	json answerJ = json::parse(answer);
+	json answerJ = json(answer);
 	if(verifyJSONPacket(answerJ)){
 		auto responses = answerJ["response"];
 		cout << "Server Files Listing:" << endl 
 			 << "=====================" << endl;
 			 
 		for(auto file : responses){
-			if(file.count("filename") == 1){
-				cout << file["filename"].get<string>() << endl ;
+			if(file.hasKey("filename")){
+				cout << file["filename"].getString() << endl ;
 			}
 		}
 		cout << "=====================" << endl << endl;

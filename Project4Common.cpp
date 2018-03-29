@@ -60,11 +60,12 @@ string MusicData::getFilename(){
 }
 
 json MusicData::getAsJSON(bool withData){
-	json fileJ;
-	fileJ["filename"] = this->filename;
-	fileJ["checksum"] = this->checksum;
+	json fileJ = json();
+	fileJ.makeObject();
+	fileJ.set("filename", json(this->filename, true));
+	fileJ.set("checksum", json(this->checksum, true));
 	if(withData){
-		fileJ["data"] = b64Encode();
+		fileJ.set("data", json(b64Encode(), true));
 	}
 
 	return fileJ;
@@ -198,6 +199,7 @@ string receiveUntilByteEquals(int sock, char eq) {
 
 void sendToSocket(int socket, const string& data) {
 	string myData = data + '\n';
+
 	if (send(socket, myData.c_str(), myData.size(), 0) < 0) {
         perror("Could not send");
 		exit(1);
@@ -205,33 +207,33 @@ void sendToSocket(int socket, const string& data) {
 }
 
 void sendToSocket(int socket, const json& data){
-	sendToSocket(socket, data.dump());
+	sendToSocket(socket, data.stringify());
 }
 
-bool verifyJSONPacket(const json& data){
+bool verifyJSONPacket(json& data){
 	bool verified = true;
 
-	verified = verified && data.is_object() && data.count("version") == 1 
-			   && data.count("type") == 1 && data["version"] == VERSION 
-			   && data["type"].is_string();
+	verified = verified && data.jIsObject() && data.hasKey("version")
+			   && data.hasKey("type") && data["version"].getNumber() == VERSION
+			   && data["type"].jIsString();
 	
-	auto type = data["type"];
+	auto type = data["type"].getString();
 	if(type == "list"){
 		return verified;
 	}
 	if(type == "listResponse"){
-		verified = verified && data.count("response") == 1
-				   && data["response"].is_array();
+		verified = verified && data.hasKey("response")
+				   && data["response"].jIsArray();
 		return verified;
 	}
 	if(type == "pullResponse"){
-		verified = verified && data.count("response") == 1
-				   && data["response"].is_array();
+		verified = verified && data.hasKey("response")
+				   && data["response"].jIsArray();
 		return verified;
 	}
 	if(type == "pull"){
-		verified = verified && data.count("request") == 1
-				   && data["request"].is_array();
+		verified = verified && data.hasKey("request")
+				   && data["request"].jIsArray();
 	}
 	if(type == "leave"){
 		return verified;

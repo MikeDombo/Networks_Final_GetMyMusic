@@ -1,10 +1,21 @@
 #include "MyJSON.h"
 
+std::string JSON::trim(const std::string &str) {
+    size_t first = str.find_first_not_of(' ');
+    if (std::string::npos == first) {
+        return str;
+    }
+    size_t last = str.find_last_not_of(' ');
+    return str.substr(first, (last - first + 1));
+}
+
 JSON::JSON(const std::string &j) : JSON(j, false) {};
 
 JSON::JSON() {};
 
 JSON::JSON(int i) : JSON((double) i) {};
+
+JSON::JSON(const unsigned int &i) : JSON((double) i) {};
 
 JSON::JSON(double i) {
     this->isNumber = true;
@@ -81,6 +92,19 @@ void JSON::set(const std::string &key, const JSON &value) {
     }
 }
 
+void JSON::set(const std::string& key, const std::vector<JSON>& value){
+    if (this->isObject) {
+        JSON j;
+        j.makeArray();
+        for(JSON v : value){
+            j.push(v);
+        }
+        this->objectEls.emplace(key, j);
+    } else {
+        throw std::domain_error("Cannot set key:value pair on a non-object");
+    }
+}
+
 void JSON::set(int i, const JSON &value) {
     if (this->isArray) {
         this->arrayEls[i] = value;
@@ -95,6 +119,20 @@ JSON JSON::get(const std::string &key) {
 
 JSON JSON::get(int i) {
     return this->operator[](i);
+}
+
+std::string JSON::getString() {
+    if(this->isString){
+        return this->stringVal;
+    }
+    return NULL;
+}
+
+double JSON::getNumber() {
+    if(this->isNumber){
+        return this->numberVal;
+    }
+    return 0;
 }
 
 std::string JSON::stringify() const {
@@ -171,7 +209,7 @@ unsigned int JSON::getLength() {
 
 void JSON::parse() {
     std::string s = this->origString;
-    s = trim(s);
+    s = this->trim(s);
 
     if (s[0] == '[' && s.back() == ']') {
         this->isArray = true;
@@ -301,16 +339,30 @@ void JSON::parseObject() {
     this->objectEls.emplace(key, JSON(element));
 };
 
-int main(int argc, char **argv) {
-    JSON j = JSON(std::string(argv[1]));
-    std::cout << std::endl << std::endl;
-    std::cout << j.stringify() << std::endl << std::endl << std::endl;
+JSON* JSON::begin() {
+    if(this->isArray){
+        return &this->arrayEls[0];
+    }
+    return NULL;
+}
 
-    JSON newJ = JSON();
-    std::cout << "Blank JSON" << std::endl;
-    std::cout << newJ << std::endl;
-    newJ.makeArray();
-    newJ.push(JSON());
-    newJ.push(JSON());
-    std::cout << newJ << std::endl;
+const JSON* JSON::begin() const {
+    if(this->isArray){
+        return &this->arrayEls[0];
+    }
+    return NULL;
+}
+
+JSON* JSON::end() {
+    if(this->isArray){
+        return &this->arrayEls[this->arrayEls.size()];
+    }
+    return NULL;
+}
+
+const JSON* JSON::end() const {
+    if(this->isArray){
+        return &this->arrayEls[this->arrayEls.size()];
+    }
+    return NULL;
 }

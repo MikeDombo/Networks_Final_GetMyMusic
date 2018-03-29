@@ -21,9 +21,11 @@ void doListResponse(int sock, const string& directory){
 	}
 
 	json listResponsePacket;
-	listResponsePacket["version"] = VERSION;
-	listResponsePacket["type"] = "listResponse";
-	listResponsePacket["response"] = jsonFiles;
+	listResponsePacket.makeObject();
+	listResponsePacket.set("version", VERSION);
+	listResponsePacket.set("type", json("listResponse", true));
+	listResponsePacket.set("response", jsonFiles);
+	std::cout << listResponsePacket << std::endl;
 	sendToSocket(sock, listResponsePacket);
 }
 
@@ -33,9 +35,11 @@ void doPullResponse(int sock, const string& directory, const json& queryJ){
 
 void handleClient(int sock, const string& directory){
 	auto query = receiveUntilByteEquals(sock, '\n');
-	auto queryJ = json::parse(query);
+	auto queryJ = json(query);
+
 	if(verifyJSONPacket(queryJ)){
-		string type = queryJ["type"].get<string>();
+		string type = queryJ["type"].getString();
+
 		if(type == "list"){
 			doListResponse(sock, directory);
 		}
@@ -43,6 +47,7 @@ void handleClient(int sock, const string& directory){
 			doPullResponse(sock, directory, queryJ);
 		}
 		else if(type == "leave"){
+		    std::cout << "Client Leaving" << std::endl;
 			close(sock);
 			return;
 		}

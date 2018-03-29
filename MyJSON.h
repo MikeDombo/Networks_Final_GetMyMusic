@@ -8,15 +8,6 @@
 #ifndef MYJSON_H
 #define MYJSON_H
 
-std::string trim(const std::string &str) {
-    size_t first = str.find_first_not_of(' ');
-    if (std::string::npos == first) {
-        return str;
-    }
-    size_t last = str.find_last_not_of(' ');
-    return str.substr(first, (last - first + 1));
-}
-
 class JSON {
 public:
     JSON(const std::string &j);
@@ -24,6 +15,8 @@ public:
     JSON();
 
     JSON(int i);
+
+    JSON(const unsigned int& i);
 
     JSON(double i);
 
@@ -51,6 +44,8 @@ public:
 
     void set(const std::string& key, const JSON& value);
 
+    void set(const std::string& key, const std::vector<JSON>& value);
+
     void set(int i, const JSON& value);
 
     JSON get(const std::string& key);
@@ -73,7 +68,18 @@ public:
     void unshift(const JSON& j);
 
     unsigned int getLength();
+
+    std::string getString();
+
+    double getNumber();
+
+    JSON* begin();
+    const JSON* begin() const;
+    JSON* end();
+    const JSON* end() const;
 private:
+    static std::string trim(const std::string&);
+
     void parse();
 
     void parseArray();
