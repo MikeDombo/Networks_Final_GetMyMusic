@@ -29,6 +29,12 @@ client: Project4Client
 server: Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
 
+JSONTest.o: JSONTest.cpp
+	$(CC) $(CFLAGS) JSONTest.cpp -o JSONTest.o
+
+JSONTest: JSONTest.o HappyPathJSON.o
+	$(CC) $(LDFLAGS) JSONTest.o HappyPathJSON.o -o JSONTest
+
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
 

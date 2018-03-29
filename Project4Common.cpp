@@ -106,13 +106,13 @@ bool isDirectory(const string &path) {
     return false;
 }
 
-vector <string> directoryFileListing(const string &path) {
+vector<string> directoryFileListing(const string &path) {
     string thisPath = path;
     if (thisPath.back() != '/' && thisPath.back() != '\\') {
         thisPath = thisPath + '/';
     }
 
-    vector <string> listing;
+    vector<string> listing;
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir(thisPath.c_str())) != nullptr) {
@@ -131,8 +131,8 @@ vector <string> directoryFileListing(const string &path) {
     return listing;
 }
 
-vector <MusicData> list(const string &directory) {
-    vector <MusicData> l;
+vector<MusicData> list(const string &directory) {
+    vector<MusicData> l;
     for (auto d : directoryFileListing(directory)) {
         l.push_back(MusicData(d));
     }

@@ -15,7 +15,7 @@ void printHelp(char **argv) {
 void doListResponse(int sock, const string &directory) {
     auto files = list(directory);
 
-    vector <json> jsonFiles;
+    vector<json> jsonFiles;
     for (auto f : files) {
         jsonFiles.push_back(f.getAsJSON(false));
     }

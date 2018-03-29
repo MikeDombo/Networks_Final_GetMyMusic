@@ -36,3 +36,4 @@ MyJSON
 *.code-workspace
 .idea/*
 cmake-build-debug/*
+JSONTest
