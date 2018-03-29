@@ -269,13 +269,13 @@ string base64Encode(const std::vector<char> &inputBuffer) {
     b.f.char3 = inputBuffer[i+2];
     b.i = htonl(b.i);
     
-    index = (b.i & 0x00FC0000) >> 18;
+    index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
     output << BASE64_CHARS[index];
-    index = (b.i & 0x0003F000) >> 12;
+    index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
     output << BASE64_CHARS[index];
-    index = (b.i & 0x00000FC0) >>  6;
+    index = static_cast<uint8_t>((b.i & 0x00000FC0) >> 6);
     output << BASE64_CHARS[index];
-    index = (b.i & 0x0000003F) >>  0;
+    index = static_cast<uint8_t>((b.i & 0x0000003F) >> 0);
     output << BASE64_CHARS[index];
   }
 
@@ -285,9 +285,9 @@ string base64Encode(const std::vector<char> &inputBuffer) {
     case 1:
       b.f.char1 = inputBuffer[inputBuffer.size() - 1];
       b.i = htonl(*((uint32_t*) &b));
-      index = (b.i & 0x00FC0000) >> 18;
+      index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
       output << BASE64_CHARS[index];
-      index = (b.i & 0x00030000) >> 12;
+      index = static_cast<uint8_t>((b.i & 0x00030000) >> 12);
       output << BASE64_CHARS[index];
       output << BASE64_PAD_CHAR;
       output << BASE64_PAD_CHAR;
@@ -296,11 +296,11 @@ string base64Encode(const std::vector<char> &inputBuffer) {
       b.f.char1 = inputBuffer[inputBuffer.size() - 2];
       b.f.char2 = inputBuffer[inputBuffer.size() - 1];
       b.i = htonl(*((uint32_t*) &b));
-      index = (b.i & 0x00FC0000) >> 18;
+      index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
       output << BASE64_CHARS[index];
-      index = (b.i & 0x0003F000) >> 12;
+      index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
       output << BASE64_CHARS[index];
-      index = (b.i & 0x00000F00) >>  6;
+      index = static_cast<uint8_t>((b.i & 0x00000F00) >> 6);
       output << BASE64_CHARS[index];
       output << BASE64_PAD_CHAR;
       break;
