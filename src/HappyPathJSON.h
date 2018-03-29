@@ -30,6 +30,8 @@ public:
 
     JSON &operator[](const std::string &s);
 
+    void operator=(const JSON &j);
+
     void operator=(const std::string &s);
 
     void operator=(double i);
@@ -98,6 +100,12 @@ private:
 
     void parseObject();
 
+    std::string doUnescape(const std::string &s, char c);
+
+    static std::string convertToUnicode(const std::string &s);
+
+    static bool isNumeric(const std::string &s);
+
     std::vector<JSON> arrayEls;
     std::map<std::string, JSON> objectEls;
     std::string stringVal;
@@ -110,12 +118,6 @@ private:
     bool isArray = false;
     bool isString = false;
     bool isNumber = false;
-
-    std::string doUnescape(const std::string &s, char c);
-
-    static std::string convertToUnicode(const std::string &s);
-
-    static bool isNumeric(const std::string &s);
 };
 
 #endif
