@@ -16,13 +16,13 @@ public:
 
     JSON(int i);
 
-    JSON(const unsigned int& i);
+    JSON(const unsigned int &i);
 
     JSON(double i);
 
-    JSON(std::map<std::string, JSON>& m);
+    JSON(std::map <std::string, JSON> &m);
 
-    JSON(std::vector<JSON> &js);
+    JSON(std::vector <JSON> &js);
 
     JSON(const std::string &j, bool plainString);
 
@@ -42,17 +42,17 @@ public:
 
     bool jIsString();
 
-    void set(const std::string& key, const JSON& value);
+    void set(const std::string &key, const JSON &value);
 
-    void set(const std::string& key, const std::vector<JSON>& value);
+    void set(const std::string &key, const std::vector <JSON> &value);
 
-    void set(int i, const JSON& value);
+    void set(int i, const JSON &value);
 
-    JSON get(const std::string& key);
+    JSON get(const std::string &key);
 
     JSON get(int i);
 
-    friend std::ostream &operator<< (std::ostream &os, const JSON& j) {
+    friend std::ostream &operator<<(std::ostream &os, const JSON &j) {
         os << j.stringify();
         return os;
     };
@@ -63,9 +63,9 @@ public:
 
     void makeObject();
 
-    void push(const JSON& j);
+    void push(const JSON &j);
 
-    void unshift(const JSON& j);
+    void unshift(const JSON &j);
 
     unsigned int getLength();
 
@@ -73,12 +73,16 @@ public:
 
     double getNumber();
 
-    JSON* begin();
-    const JSON* begin() const;
-    JSON* end();
-    const JSON* end() const;
+    JSON *begin();
+
+    const JSON *begin() const;
+
+    JSON *end();
+
+    const JSON *end() const;
+
 private:
-    static std::string trim(const std::string&);
+    static std::string trim(const std::string &);
 
     void parse();
 

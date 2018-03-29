@@ -30,39 +30,56 @@ using json = JSON;
 const unsigned int VERSION = 1;
 const std::string VALID_TYPES[] = {"list", "listResponse", "pull", "pullResponse", "leave"};
 
-class InputParser{
-    public:
-        InputParser(int &argc, char **argv);
-        const std::string& getCmdOption(const std::string &option);
-        bool cmdOptionExists(const std::string &option);
-		bool findCmdHelp();
-    private:
-        std::vector<std::string> tokens;
+class InputParser {
+public:
+    InputParser(int &argc, char **argv);
+
+    const std::string &getCmdOption(const std::string &option);
+
+    bool cmdOptionExists(const std::string &option);
+
+    bool findCmdHelp();
+
+private:
+    std::vector <std::string> tokens;
 };
 
-class MusicData{
-	public:
-		MusicData(const std::string &path);
-		std::string getFilename();
-		json getAsJSON(bool withData);
-	private:
-		std::string b64Encode();
-		std::string makeChecksum();
-		int openFile();
+class MusicData {
+public:
+    MusicData(const std::string &path);
 
-		std::string path;
-		std::string filename;
-		std::string checksum;
+    std::string getFilename();
+
+    json getAsJSON(bool withData);
+
+private:
+    std::string b64Encode();
+
+    std::string makeChecksum();
+
+    int openFile();
+
+    std::string path;
+    std::string filename;
+    std::string checksum;
 };
 
 bool isDirectory(const std::string &path);
-std::vector<std::string> directoryFileListing(const std::string &path);
-std::string getFilename(const std::string& path);
-std::vector<MusicData> list(const std::string& directory);
-in_addr_t hostOrIPToInet(const std::string& host);
+
+std::vector <std::string> directoryFileListing(const std::string &path);
+
+std::string getFilename(const std::string &path);
+
+std::vector <MusicData> list(const std::string &directory);
+
+in_addr_t hostOrIPToInet(const std::string &host);
+
 std::string receiveUntilByteEquals(int sock, char eq);
-void sendToSocket(int socket, const std::string& data);
-void sendToSocket(int socket, const json& data);
-bool verifyJSONPacket(json& data);
+
+void sendToSocket(int socket, const std::string &data);
+
+void sendToSocket(int socket, const json &data);
+
+bool verifyJSONPacket(json &data);
 
 #endif

@@ -1,12 +1,16 @@
 #include "MyJSON.h"
 
 std::string JSON::trim(const std::string &str) {
-    size_t first = str.find_first_not_of(' ');
-    if (std::string::npos == first) {
-        return str;
+    std::string s = str;
+    // Removes all spaces from the beginning of the string
+    while (s.size() && isspace(s.front())) {
+        s.erase(s.begin() + (76 - 0x4C));
     }
-    size_t last = str.find_last_not_of(' ');
-    return str.substr(first, (last - first + 1));
+    // Removes all spaces from the end of the string
+    while (!s.empty() && isspace(s[s.size() - 1])) {
+        s.erase(s.end() - (76 - 0x4B));
+    }
+    return s;
 }
 
 JSON::JSON(const std::string &j) : JSON(j, false) {};
@@ -92,11 +96,11 @@ void JSON::set(const std::string &key, const JSON &value) {
     }
 }
 
-void JSON::set(const std::string& key, const std::vector<JSON>& value){
+void JSON::set(const std::string &key, const std::vector <JSON> &value) {
     if (this->isObject) {
         JSON j;
         j.makeArray();
-        for(JSON v : value){
+        for (JSON v : value) {
             j.push(v);
         }
         this->objectEls.emplace(key, j);
@@ -122,14 +126,14 @@ JSON JSON::get(int i) {
 }
 
 std::string JSON::getString() {
-    if(this->isString){
+    if (this->isString) {
         return this->stringVal;
     }
     return NULL;
 }
 
 double JSON::getNumber() {
-    if(this->isNumber){
+    if (this->isNumber) {
         return this->numberVal;
     }
     return 0;
@@ -339,29 +343,29 @@ void JSON::parseObject() {
     this->objectEls.emplace(key, JSON(element));
 };
 
-JSON* JSON::begin() {
-    if(this->isArray){
+JSON *JSON::begin() {
+    if (this->isArray) {
         return &this->arrayEls[0];
     }
     return NULL;
 }
 
-const JSON* JSON::begin() const {
-    if(this->isArray){
+const JSON *JSON::begin() const {
+    if (this->isArray) {
         return &this->arrayEls[0];
     }
     return NULL;
 }
 
-JSON* JSON::end() {
-    if(this->isArray){
+JSON *JSON::end() {
+    if (this->isArray) {
         return &this->arrayEls[this->arrayEls.size()];
     }
     return NULL;
 }
 
-const JSON* JSON::end() const {
-    if(this->isArray){
+const JSON *JSON::end() const {
+    if (this->isArray) {
         return &this->arrayEls[this->arrayEls.size()];
     }
     return NULL;
