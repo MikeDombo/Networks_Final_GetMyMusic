@@ -30,7 +30,7 @@ using json = JSON;
 const double VERSION = 1.0;
 const std::string BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const char BASE64_PAD_CHAR = '=';
-const uint8_t BASE64_REVERSE_MAP[256] = { // 16x16 unsigned chars. Base64 ASCII subset
+const unsigned char BASE64_REVERSE_MAP[256] = { // 16x16 unsigned chars. Base64 ASCII subset
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 62,  0,  0,  0, 63,
@@ -102,5 +102,7 @@ void sendToSocket(int socket, const json &data);
 bool verifyJSONPacket(json &data);
 
 std::string base64Encode(const std::vector<char> &inputBuffer);
+
+std::vector<char> base64Decode(const std::string &inputString);
 
 #endif

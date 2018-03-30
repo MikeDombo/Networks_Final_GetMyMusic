@@ -1,7 +1,6 @@
 #include "Project4Common.h"
 #include "lib/base64.h"
 #include <assert.h>     /* assert */
-#include <stdint.h>
 #include <iomanip> /* for formatted printing to cout */
 void testBase64Decoding();
 void printReverseMap();
@@ -18,6 +17,14 @@ int main() {
 
 void testBase64Decoding() {
   printReverseMap();
+  std::string simpleStringTarget = "lalala happy string";
+  std::string decodingSrc;
+  Base64::Encode(simpleStringTarget, &decodingSrc);
+
+  std::vector<char> myResult = base64Decode(decodingSrc);
+  std::string resultString(myResult.begin(), myResult.end());
+  std::cout << resultString << std::endl;
+  assert(resultString == simpleStringTarget);
 }
 
 void printReverseMap() {
