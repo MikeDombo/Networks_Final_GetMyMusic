@@ -242,24 +242,26 @@ bool verifyJSONPacket(json &data) {
 
     return false;
 }
+  
+// base64 uses an 8-bit character to store 6 "raw" bits. 
+// These sync up at the least common multiple, 24 bits (every 3 bytes of input)
+// Ensure a contiguous representation for bit manipulation
+struct fourchar {
+  char padding;
+  char char1;
+  char char2;
+  char char3;
+};
+union Bitboi {
+  fourchar f;
+  uint32_t i;
+};
+
 
 string base64Encode(const std::vector<char> &inputBuffer) {
   stringstream output;
   uint8_t index;
-
-  // base64 uses an 8-bit character to store 6 "raw" bits. 
-  // These sync up at the least common multiple, 24 bits (every 3 bytes of input)
-  // Ensure a contiguous representation for bit manipulation
-  struct fourchar {
-    char padding;
-    char char1;
-    char char2;
-    char char3;
-  };
-  union Bitboi {
-    fourchar f;
-    uint32_t i;
-  } b;
+  Bitboi b;
 
   for (size_t i = 0; i+2 < inputBuffer.size(); i += 3) {
     // extract 3 bytes from the vector
@@ -308,5 +310,25 @@ string base64Encode(const std::vector<char> &inputBuffer) {
       break;
   }
   return output.str();
+}
+
+vector<char> base64Decode(const string &inputString) {
+  Bitboi b;
+  vector<char> result;
+  // TODO: initialize allocation to (3*((inputString.size() + 3)/4) chars
+  for (size_t i = 0; i+3 < inputString.size(); i += 4) {
+    memset(&b, 0, 4);
+    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+0])] << 18;
+    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+1])] << 12;
+    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+2])] <<  6;
+    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+3])];
+    b.i = ntohl(b.i);
+    result.emplace_back(b.f.char1);
+    if (b.f.char2 != '\0')
+      result.emplace_back(b.f.char2);
+    if (b.f.char3 != '\0')
+      result.emplace_back(b.f.char3);
+  }
+  return result;
 }
 
