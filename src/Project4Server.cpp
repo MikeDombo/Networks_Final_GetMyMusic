@@ -22,7 +22,7 @@ void doListResponse(int sock, const string &directory) {
 
     json listResponsePacket;
     listResponsePacket["version"] = VERSION;
-    listResponsePacket["type"] = "listResponse";
+    listResponsePacket["type"] = std::string("listResponse");
     listResponsePacket["response"] = jsonFiles;
     sendToSocket(sock, listResponsePacket);
 }
