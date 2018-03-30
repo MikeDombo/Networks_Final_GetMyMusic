@@ -78,17 +78,7 @@ string MusicData::b64Encode() {
     // copies all data into buffer
     vector<char> buffer((istreambuf_iterator<char>(input)),
                         istreambuf_iterator<char>());
-    /*
-    string strBuffer(buffer.begin(), buffer.end());
-
-    string encoding;
-    if (Base64::Encode(strBuffer, &encoding)) {
-        return encoding;
-    } else {
-        perror("Base64 failed");
-        exit(1);
-    }
-    */
+    // Do base64 encoding and return as a string
     return base64Encode(buffer);
 }
 
