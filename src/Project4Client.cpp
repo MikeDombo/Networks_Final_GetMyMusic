@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
         printHelp(argv);
     }
     if (input.cmdOptionExists("-p") && input.cmdOptionExists("-s")) {
-        serverPort = htons((unsigned int) stoul(input.getCmdOption("-p")));
+        serverPort = htons(static_cast<uint16_t>(stoul(input.getCmdOption("-p"))));
         serverHost = input.getCmdOption("-s");
     } else {
         printHelp(argv);

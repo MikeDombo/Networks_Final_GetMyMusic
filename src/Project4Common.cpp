@@ -163,7 +163,7 @@ in_addr_t hostOrIPToInet(const string &host) {
 }
 
 /*
- * Keep trying to receive until a specifc byte is read from the server
+ * Keep trying to receive until a specific byte is read from the server
  * 
  */
 string receiveUntilByteEquals(int sock, char eq) {

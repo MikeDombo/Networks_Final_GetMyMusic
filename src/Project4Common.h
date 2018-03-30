@@ -23,7 +23,6 @@
 
 #include "HappyPathJSON.h"
 #include "lib/CCRC32.h"
-#include "lib/base64.h"
 
 using json = JSON;
 
