@@ -99,8 +99,8 @@ void action(const string &s) {
 }
 
 void repl() {
-    cout << *j << endl;
-    cout << getLevelDeep() << endl;
+    cout << "Root:         " << *j << endl;
+    cout << "Current Level:" << getLevelDeep() << endl;
 
     printOptions();
     string userInput;

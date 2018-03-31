@@ -65,7 +65,7 @@ JSON &JSON::operator[](const std::string &s) {
     if (this->isBlank()) {
         this->makeObject();
     }
-    if (JSON::isNumeric(s)) {
+    if (!this->iObject && JSON::isNumeric(s)) {
         return this->operator[](std::stoi(s));
     }
     if (this->iObject) {
@@ -329,6 +329,8 @@ std::string JSON::getStringWithUnicode() {
             if (c == 'u') {
                 unicode = true;
                 unicodeCount = 0;
+                newString += '\\';
+                newString += c;
             } else {
                 newString = doUnescape(newString, c);
             }
@@ -344,8 +346,11 @@ std::string JSON::getStringWithUnicode() {
                 std::string unicodeHex = newString.substr(newString.size() - 4, 4);
 
                 // Remove unicode codepoint and insert unicode character
-                newString = newString.substr(0, newString.size() - 4) +
-                            this->convertToUnicode(unicodeHex);
+                std::string possibleUnicode = this->convertToUnicode(unicodeHex);
+                if(possibleUnicode == unicodeHex){
+                    possibleUnicode = std::string("\\u") + possibleUnicode;
+                }
+                newString = newString.substr(0, newString.size() - 6) + possibleUnicode;
 
                 unicode = false;
                 unicodeCount = 0;
@@ -370,6 +375,9 @@ std::string JSON::convertToUnicode(const std::string &s) {
             codepoint += ((current - 0x37) << factor);
         } else if (current >= 'a' and current <= 'f') {
             codepoint += ((current - 0x57) << factor);
+        } else {
+            // We got a non-hex value, we must fail
+            return s;
         }
         current = s[++i];
     }
