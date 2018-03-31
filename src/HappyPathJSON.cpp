@@ -5,11 +5,11 @@ std::string JSON::trim(const std::string &str) {
     std::string s = str;
     // Removes all spaces from the beginning of the string
     while (s.size() && isspace(s.front())) {
-        s.erase(s.begin() + (76 - 0x4C));
+        s.erase(s.begin());
     }
     // Removes all spaces from the end of the string
     while (!s.empty() && isspace(s[s.size() - 1])) {
-        s.erase(s.end() - (76 - 0x4B));
+        s.erase(s.end() - 1);
     }
     return s;
 }
@@ -453,7 +453,7 @@ void JSON::parseArray() {
                 this->arrayEls.push_back(JSON(singleElement));
             }
             singleElement = std::string();
-        } else {
+        } else if(quotes || !isspace(c)){
             singleElement += c;
         }
 
