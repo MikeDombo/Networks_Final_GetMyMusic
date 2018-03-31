@@ -204,27 +204,30 @@ void sendToSocket(int socket, const json &data) {
 bool verifyJSONPacket(json &data) {
     bool verified = true;
 
-    verified = verified && data.jIsObject() && data.hasKey("version")
+    verified = verified && data.isObject() && data.hasKey("version")
                && data.hasKey("type") && data["version"].getNumber() == VERSION
-               && data["type"].jIsString();
+               && data["type"].isString();
 
-    auto type = data["type"].getString();
+    if(!verified){
+        return false;
+    }
+
+    std::string type = data["type"].getString();
+
     if (type == "list") {
         return verified;
     }
     if (type == "listResponse") {
-        verified = verified && data.hasKey("response")
-                   && data["response"].jIsArray();
-        return verified;
+        return verified && data.hasKey("response")
+                   && data["response"].isArray();
     }
     if (type == "pullResponse") {
-        verified = verified && data.hasKey("response")
-                   && data["response"].jIsArray();
-        return verified;
+        return verified && data.hasKey("response")
+                   && data["response"].isArray();
     }
     if (type == "pull") {
-        verified = verified && data.hasKey("request")
-                   && data["request"].jIsArray();
+        return verified && data.hasKey("request")
+                   && data["request"].isArray();
     }
     if (type == "leave") {
         return verified;

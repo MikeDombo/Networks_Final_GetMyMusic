@@ -72,14 +72,14 @@ void action(const string &s) {
 
         keyHierarchy.emplace_back(currentKey);
     } else if (s == "2") {
-        if (getLevelDeep().jIsString()) {
+        if (getLevelDeep().isString()) {
             cout << getLevelDeep().getString() << endl;
         } else {
             printRedText("Cannot get non-string as a string");
             cout << endl;
         }
     } else if (s == "3") {
-        if (getLevelDeep().jIsString()) {
+        if (getLevelDeep().isString()) {
             cout << getLevelDeep().getStringWithUnicode() << endl;
         } else {
             printRedText("Cannot get non-string as a string");

@@ -16,26 +16,24 @@ std::string JSON::trim(const std::string &str) {
 
 JSON::JSON(const std::string &j) : JSON(j, false) {};
 
-JSON::JSON() {};
-
 JSON::JSON(double i) {
-    this->isNumber = true;
+    this->iNumber = true;
     this->numberVal = i;
 };
 
 JSON::JSON(std::map<std::string, JSON> &m) {
-    this->isObject = true;
+    this->iObject = true;
     this->objectEls = m;
 };
 
 JSON::JSON(std::vector<JSON> &js) {
-    this->isArray = true;
+    this->iArray = true;
     this->arrayEls = js;
 }
 
 JSON::JSON(const std::string &j, bool plainString) {
     if (plainString) {
-        this->isString = true;
+        this->iString = true;
         this->stringVal = j;
     } else {
         this->origString = j;
@@ -44,7 +42,7 @@ JSON::JSON(const std::string &j, bool plainString) {
 };
 
 bool JSON::hasKey(const std::string &k) {
-    if (this->isArray) {
+    if (this->iArray) {
         return false;
     }
     return this->objectEls.find(k) != this->objectEls.end();
@@ -54,7 +52,7 @@ JSON &JSON::operator[](int i) {
     if (i < 0) {
         throw std::out_of_range("Index is out of range");
     }
-    if (this->isArray) {
+    if (this->iArray) {
         if ((unsigned int) i >= this->arrayEls.size()) {
             throw std::out_of_range("Index is out of range");
         }
@@ -70,7 +68,7 @@ JSON &JSON::operator[](const std::string &s) {
     if (JSON::isNumeric(s)) {
         return this->operator[](std::stoi(s));
     }
-    if (this->isObject) {
+    if (this->iObject) {
         if (!this->hasKey(s)) {
             this->objectEls.emplace(s, JSON());
         }
@@ -100,25 +98,25 @@ void JSON::operator=(const std::string &s) {
 }
 
 void JSON::operator=(double i) {
-    if (this->isString) {
+    if (this->iString) {
         std::stringstream ss;
         ss << i;
         this->origString = ss.str();
         parse();
-    } else if (this->isNumber) {
+    } else if (this->iNumber) {
         this->numberVal = i;
     } else if (this->isBlank()){
         this->numberVal = i;
-        this->isNumber = true;
+        this->iNumber = true;
     }
 }
 
 void JSON::operator=(bool b) {
-    if (this->isBool) {
+    if (this->iBool) {
         this->boolVal = b;
     } else if (this->isBlank()){
         this->boolVal = b;
-        this->isBool = true;
+        this->iBool = true;
     }
 }
 
@@ -126,41 +124,41 @@ void JSON::operator=(const std::vector<JSON> &value) {
     if (this->isBlank()) {
         this->makeArray();
     } else {
-        this->isString = false;
-        this->isObject = false;
-        this->isNumber = false;
+        this->iString = false;
+        this->iObject = false;
+        this->iNumber = false;
     }
     this->arrayEls.insert(std::end(this->arrayEls), std::begin(value), std::end(value));
 }
 
 std::string JSON::getString() {
-    if (this->isString) {
+    if (this->iString) {
         return this->stringVal;
     }
     return nullptr;
 }
 
 double JSON::getNumber() {
-    if (this->isNumber) {
+    if (this->iNumber) {
         return this->numberVal;
     }
     return 0;
 }
 
 bool JSON::getBool() {
-    if (this->isBool) {
+    if (this->iBool) {
         return this->boolVal;
     }
     return false;
 }
 
 bool JSON::isBlank() {
-    return !(this->isArray || this->isObject || this->isNumber || this->isString || this->isNull || this->isBool);
+    return !(this->iArray || this->iObject || this->iNumber || this->iString || this->null || this->iBool);
 }
 
 std::string JSON::stringify() const {
     std::stringstream ss;
-    if (this->isArray) {
+    if (this->iArray) {
         ss << '[';
         for (unsigned int i = 0; i < this->arrayEls.size(); i++) {
             ss << this->arrayEls[i].stringify();
@@ -169,7 +167,7 @@ std::string JSON::stringify() const {
             }
         }
         ss << ']';
-    } else if (this->isObject) {
+    } else if (this->iObject) {
         ss << '{';
         unsigned int i = 0;
         for (std::map<std::string, JSON>::const_iterator it = this->objectEls.begin();
@@ -180,17 +178,17 @@ std::string JSON::stringify() const {
             }
         }
         ss << '}';
-    } else if (this->isNumber) {
+    } else if (this->iNumber) {
         ss << this->numberVal;
-    } else if (this->isString) {
+    } else if (this->iString) {
         ss << '"' << this->getEscapedString() << '"';
-    } else if (this->isBool) {
+    } else if (this->iBool) {
         if (this->boolVal) {
             ss << "true";
         } else {
             ss << "false";
         }
-    } else if (this->isNull) {
+    } else if (this->null) {
         ss << "null";
     }
     return ss.str();
@@ -200,28 +198,35 @@ void JSON::makeArray() {
     if (!this->isBlank()) {
         throw std::domain_error("Can only apply makeArray() to blank objects!");
     }
-    this->isArray = true;
+    this->iArray = true;
 }
 
 void JSON::makeNull() {
     if (!this->isBlank()) {
         throw std::domain_error("Can only apply makeNull() to blank objects!");
     }
-    this->isNull = true;
+    this->null = true;
 }
 
 void JSON::makeObject() {
     if (!this->isBlank()) {
         throw std::domain_error("Can only apply makeObject() to blank objects!");
     }
-    this->isObject = true;
+    this->iObject = true;
+}
+
+void JSON::makeBool() {
+    if (!this->isBlank()) {
+        throw std::domain_error("Can only apply makeBool() to blank objects!");
+    }
+    this->iBool = true;
 }
 
 void JSON::push(const JSON &j) {
     if (this->isBlank()) {
         this->makeArray();
     }
-    if (this->isArray) {
+    if (this->iArray) {
         this->arrayEls.emplace_back(j);
     }
 }
@@ -230,19 +235,19 @@ void JSON::unshift(const JSON &j) {
     if (this->isBlank()) {
         this->makeArray();
     }
-    if (this->isArray) {
+    if (this->iArray) {
         this->arrayEls.emplace(this->arrayEls.begin(), j);
     }
 }
 
 unsigned long JSON::getLength() {
-    if (this->isArray) {
+    if (this->iArray) {
         return this->arrayEls.size();
     }
-    if (this->isObject) {
+    if (this->iObject) {
         return this->objectEls.size();
     }
-    if (this->isString) {
+    if (this->iString) {
         return this->stringVal.size();
     }
 
@@ -255,14 +260,14 @@ void JSON::parse() {
     this->origString = s;
 
     if (s[0] == '[' && s.back() == ']') {
-        this->isArray = true;
+        this->iArray = true;
         parseArray();
     } else if (s[0] == '{' && s.back() == '}') {
-        this->isObject = true;
+        this->iObject = true;
         parseObject();
     } else {
         if (s[0] == '"' && s.back() == '"') {
-            this->isString = true;
+            this->iString = true;
             // Remove quotes
             std::string st = s.substr(1, s.length() - 2);
 
@@ -290,15 +295,15 @@ void JSON::parse() {
             }
         } else {
             if (s == "true") {
-                this->isBool = true;
+                this->iBool = true;
                 this->boolVal = true;
             } else if (s == "false") {
-                this->isBool = true;
+                this->iBool = true;
                 this->boolVal = false;
             } else if (s == "null") {
-                this->isNull = true;
+                this->null = true;
             } else {
-                this->isNumber = true;
+                this->iNumber = true;
                 this->numberVal = std::stod(s);
             }
         }
@@ -306,7 +311,7 @@ void JSON::parse() {
 };
 
 std::string JSON::getStringWithUnicode() {
-    if (!this->isString) {
+    if (!this->iString) {
         return nullptr;
     }
 
@@ -569,36 +574,22 @@ void JSON::parseObject() {
     }
 };
 
-JSON *JSON::begin() {
-    if (this->isArray) {
-        return &this->arrayEls[0];
+std::vector<JSON>::iterator JSON::begin() {
+    if (this->iArray) {
+        return this->arrayEls.begin();
     }
-    return nullptr;
+    return this->arrayEls.end();;
 }
 
-const JSON *JSON::begin() const {
-    if (this->isArray) {
-        return &this->arrayEls[0];
+std::vector<JSON>::iterator JSON::end() {
+    if (this->iArray) {
+        return this->arrayEls.end();
     }
-    return nullptr;
-}
-
-JSON *JSON::end() {
-    if (this->isArray) {
-        return &this->arrayEls[this->arrayEls.size()];
-    }
-    return nullptr;
-}
-
-const JSON *JSON::end() const {
-    if (this->isArray) {
-        return &this->arrayEls[this->arrayEls.size()];
-    }
-    return nullptr;
+    return this->arrayEls.end();
 }
 
 std::string JSON::getEscapedString() const {
-    if (this->isString) {
+    if (this->iString) {
         std::stringstream ss;
         for (size_t i = 0; i < this->stringVal.size(); i++) {
             char codepoint = this->stringVal[i];
@@ -657,10 +648,10 @@ void JSON::operator=(const JSON &s) {
     this->numberVal = s.numberVal;
     this->boolVal = s.boolVal;
     this->origString = s.origString;
-    this->isObject = s.isObject;
-    this->isBool = s.isBool;
-    this->isNull = s.isNull;
-    this->isArray = s.isArray;
-    this->isString = s.isString;
-    this->isNumber = s.isNumber;
+    this->iObject = s.iObject;
+    this->iBool = s.iBool;
+    this->null = s.null;
+    this->iArray = s.iArray;
+    this->iString = s.iString;
+    this->iNumber = s.iNumber;
 }
