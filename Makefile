@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-c -g -Wall --std=c++11
-LDFLAGS=
+CFLAGS=-c -g -Wall --std=c++11 -fsanitize=address
+LDFLAGS=-fsanitize=address
 EXECUTABLE=Project4Server Project4Client OfflineTester JSONTest
 
 all: testFiles Project4Client Project4Server OfflineTester JSONTest
