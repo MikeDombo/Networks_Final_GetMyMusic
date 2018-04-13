@@ -152,7 +152,7 @@ void userInteractionLoop(int sock) {
     string userInput;
     getline(cin, userInput);
     if(userInput.size() <= 0){
-        std::cerr << "Please choose and option" << endl;
+        std::cerr << "Please choose an option" << endl;
     }
     else{
         try {
