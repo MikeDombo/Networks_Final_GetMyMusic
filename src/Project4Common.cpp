@@ -61,6 +61,10 @@ string MusicData::getFilename() {
     return this->filename;
 }
 
+string MusicData::getChecksum(){
+    return this->checksum;
+}
+
 json MusicData::getAsJSON(bool withData) {
     json fileJ = json();
 

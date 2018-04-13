@@ -10,6 +10,7 @@ using std::cin;
 using std::hex;
 using std::exception;
 using std::set;
+using std::map;
 
 int sock;
 string directory = ".";
@@ -96,36 +97,79 @@ void handleGetDiff(int sock) {
         auto serverFilesResponse = answerJ["response"]; //Format: [{filename: String, checksum: String}]
         auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
 
-        set<string> serverFiles;
-        set<string> clientFiles;
+        //Map where keys represent checksum of files, and set contains corresponding filenames
+        //Assumes that multiple files, although differently named can contain the same contents
+        map <string, set<string>> serverMap;
+        map <string, set<string>> clientMap;
 
+        //Build map of server file checksum to set of filenames
         for(auto file: serverFilesResponse){
-            if(file.hasKey("filename")){
-                serverFiles.insert(file["filename"].getString());
+            if(file.hasKey("checksum") && file.hasKey("filename")){
+                string serverFileChecksum = file["checksum"].getString();
+                string serverFilename = file["filename"].getString();
+                set<string> serverFilenameSet;
+
+                //If the checksum isn't in the map, then create a new set and map checksum to set
+                if(serverMap.find(serverFileChecksum) == serverMap.end()){
+                    serverFilenameSet.insert(serverFilename);
+                    serverMap[serverFileChecksum] = serverFilenameSet;
+                }
+                else{
+                    serverFilenameSet = serverMap[serverFileChecksum];
+                    serverFilenameSet.insert(serverFilename);
+                }
             } 
         }
 
-        cout << "Found on client, but not on server: ";
-        //Prints files found on client but not on server
+        //Prints files found on client but not on server and builds map of client file checksums and filenames
         for(auto musicData: clientMusicDataList){
-            string clientFilename = musicData.getFilename(); 
-            if(serverFiles.find(clientFilename) == serverFiles.end()){
-                cout << clientFilename << " ";
+            string clientFilename = musicData.getFilename();
+            string clientFileChecksum = musicData.getChecksum();
+            set<string> clientFilenameSet; 
+            
+            //If checksum isn't present in server files, print out the client file name and checksum
+            if(serverMap.find(clientFileChecksum) == serverMap.end()){
+                cout << "File found on client, but not on server -> " << clientFilename << ", " << clientFileChecksum << endl;
             }
-            clientFiles.insert(clientFilename);
-        }
-        cout << endl;
+            else{
+                set<string> serverFilenameSet = serverMap[clientFileChecksum];
+                //Handle case where server contains same file contents as client file, but is named differently
+                if(serverFilenameSet.find(clientFilename) == serverFilenameSet.end()){
+                    cout << "File found on server with same content as file on client, but differently named -> " << clientFilename << ", " << clientFileChecksum << endl;
+                }
+            }
 
-        cout << "Found on server, but not on client: ";
-        //Prints files found on server but not on client
-        for (set<string>::iterator it= serverFiles.begin(); it != serverFiles.end(); ++it){
-            string serverFilename = *it;
-            if(clientFiles.find(serverFilename) == clientFiles.end()){
-                cout << serverFilename << " ";
+            //Build the client map
+            if(clientMap.find(clientFileChecksum) == clientMap.end()){
+                clientFilenameSet.insert(clientFilename);
+                clientMap[clientFileChecksum] = clientFilenameSet;
+            }
+            else{
+                clientFilenameSet = clientMap[clientFileChecksum];
+                clientFilenameSet.insert(clientFilename);
             }
         }
-        cout << endl << endl;
+
+        //Prints files found on server but not on client
+        for(auto file: serverFilesResponse){
+            string serverFileChecksum = file["checksum"].getString();
+            string serverFilename = file["filename"].getString();
+            
+            //If checksum isn't present in server files, print out the client file name and checksum
+            if(clientMap.find(serverFileChecksum) == clientMap.end()){
+                cout << "Found on server, but not on client -> " << serverFilename << ", " << serverFileChecksum << endl;
+            }
+            else{
+                set<string> clientFilenameSet = clientMap[serverFileChecksum];
+                //Handle case where client contains same file contents as server file, but is named differently
+                if(clientFilenameSet.find(serverFilename) == clientFilenameSet.end()){
+                    cout << "File found on client with same content as file on server, but differently named ->" << serverFilename << ", " << serverFileChecksum << endl;
+                }
+            }
+        }
     }
+
+    cout << endl;
 }
 
 void handleDoSync(int sock) {

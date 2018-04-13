@@ -21,6 +21,7 @@
 #include <iterator>
 #include <exception>
 #include <set>
+#include <map>
 
 #include "HappyPathJSON.h"
 #include "lib/CCRC32.h"
@@ -68,6 +69,7 @@ public:
     MusicData(const std::string &path);
 
     std::string getFilename();
+    std::string getChecksum();
 
     json getAsJSON(bool withData);
 
