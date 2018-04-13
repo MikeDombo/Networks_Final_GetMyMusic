@@ -9,8 +9,10 @@ using std::endl;
 using std::cin;
 using std::hex;
 using std::exception;
+using std::set;
 
 int sock;
+string directory = ".";
 
 void printHelp(char **argv) {
     cout << "Usage: " << *argv << " -p portNum -s serverHostOrIP [-d directory]" << endl;
@@ -84,6 +86,46 @@ void handleGetList(int sock) {
 
 void handleGetDiff(int sock) {
     sendListRequest(sock);
+    auto answer = receiveUntilByteEquals(sock, '\n');
+    json answerJ = json(answer);
+
+    if(verifyJSONPacket(answerJ)){
+        cout << "Diff:" << endl
+             << "=====================" << endl;
+
+        auto serverFilesResponse = answerJ["response"]; //Format: [{filename: String, checksum: String}]
+        auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
+
+        set<string> serverFiles;
+        set<string> clientFiles;
+
+        for(auto file: serverFilesResponse){
+            if(file.hasKey("filename")){
+                serverFiles.insert(file["filename"].getString());
+            } 
+        }
+
+        cout << "Found on client, but not on server: ";
+        //Prints files found on client but not on server
+        for(auto musicData: clientMusicDataList){
+            string clientFilename = musicData.getFilename(); 
+            if(serverFiles.find(clientFilename) == serverFiles.end()){
+                cout << clientFilename << " ";
+            }
+            clientFiles.insert(clientFilename);
+        }
+        cout << endl;
+
+        cout << "Found on server, but not on client: ";
+        //Prints files found on server but not on client
+        for (set<string>::iterator it= serverFiles.begin(); it != serverFiles.end(); ++it){
+            string serverFilename = *it;
+            if(clientFiles.find(serverFilename) == clientFiles.end()){
+                cout << serverFilename << " ";
+            }
+        }
+        cout << endl << endl;
+    }
 }
 
 void handleDoSync(int sock) {
@@ -149,7 +191,6 @@ void userInteractionLoop(int sock) {
 int main(int argc, char **argv) {
     unsigned int serverPort;
     string serverHost;
-    string directory = ".";
 
     InputParser input(argc, argv);
     if (input.findCmdHelp()) {
