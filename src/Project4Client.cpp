@@ -90,7 +90,7 @@ void handleGetDiff(int sock) {
     auto answer = receiveUntilByteEquals(sock, '\n');
     json answerJ = json(answer);
 
-    if(verifyJSONPacket(answerJ)){
+    if (verifyJSONPacket(answerJ)) {
         cout << "Diff:" << endl
              << "=====================" << endl;
 
@@ -99,71 +99,71 @@ void handleGetDiff(int sock) {
 
         //Map where keys represent checksum of files, and set contains corresponding filenames
         //Assumes that multiple files, although differently named can contain the same contents
-        map <string, set<string>> serverMap;
-        map <string, set<string>> clientMap;
+        map<string, set<string>> serverMap;
+        map<string, set<string>> clientMap;
 
         //Build map of server file checksum to set of filenames
-        for(auto file: serverFilesResponse){
-            if(file.hasKey("checksum") && file.hasKey("filename")){
+        for (auto file: serverFilesResponse) {
+            if (file.hasKey("checksum") && file.hasKey("filename")) {
                 string serverFileChecksum = file["checksum"].getString();
                 string serverFilename = file["filename"].getString();
                 set<string> serverFilenameSet;
 
                 //If the checksum isn't in the map, then create a new set and map checksum to set
-                if(serverMap.find(serverFileChecksum) == serverMap.end()){
+                if (serverMap.find(serverFileChecksum) == serverMap.end()) {
                     serverFilenameSet.insert(serverFilename);
                     serverMap[serverFileChecksum] = serverFilenameSet;
-                }
-                else{
+                } else {
                     serverFilenameSet = serverMap[serverFileChecksum];
                     serverFilenameSet.insert(serverFilename);
                 }
-            } 
+            }
         }
 
         //Prints files found on client but not on server and builds map of client file checksums and filenames
-        for(auto musicData: clientMusicDataList){
+        for (auto musicData: clientMusicDataList) {
             string clientFilename = musicData.getFilename();
             string clientFileChecksum = musicData.getChecksum();
-            set<string> clientFilenameSet; 
-            
+            set<string> clientFilenameSet;
+
             //If checksum isn't present in server files, print out the client file name and checksum
-            if(serverMap.find(clientFileChecksum) == serverMap.end()){
-                cout << "File found on client, but not on server -> " << clientFilename << ", " << clientFileChecksum << endl;
-            }
-            else{
+            if (serverMap.find(clientFileChecksum) == serverMap.end()) {
+                cout << "File found on client, but not on server -> " << clientFilename << ", " << clientFileChecksum
+                     << endl;
+            } else {
                 set<string> serverFilenameSet = serverMap[clientFileChecksum];
                 //Handle case where server contains same file contents as client file, but is named differently
-                if(serverFilenameSet.find(clientFilename) == serverFilenameSet.end()){
-                    cout << "File found on server with same content as file on client, but differently named -> " << clientFilename << ", " << clientFileChecksum << endl;
+                if (serverFilenameSet.find(clientFilename) == serverFilenameSet.end()) {
+                    cout << "File found on server with same content as file on client, but differently named -> "
+                         << clientFilename << ", " << clientFileChecksum << endl;
                 }
             }
 
             //Build the client map
-            if(clientMap.find(clientFileChecksum) == clientMap.end()){
+            if (clientMap.find(clientFileChecksum) == clientMap.end()) {
                 clientFilenameSet.insert(clientFilename);
                 clientMap[clientFileChecksum] = clientFilenameSet;
-            }
-            else{
+            } else {
                 clientFilenameSet = clientMap[clientFileChecksum];
                 clientFilenameSet.insert(clientFilename);
             }
         }
 
         //Prints files found on server but not on client
-        for(auto file: serverFilesResponse){
+        for (auto file: serverFilesResponse) {
             string serverFileChecksum = file["checksum"].getString();
             string serverFilename = file["filename"].getString();
-            
+
             //If checksum isn't present in server files, print out the client file name and checksum
-            if(clientMap.find(serverFileChecksum) == clientMap.end()){
-                cout << "Found on server, but not on client -> " << serverFilename << ", " << serverFileChecksum << endl;
-            }
-            else{
+            if (clientMap.find(serverFileChecksum) == clientMap.end()) {
+                cout << "Found on server, but not on client -> " << serverFilename << ", " << serverFileChecksum
+                     << endl;
+            } else {
                 set<string> clientFilenameSet = clientMap[serverFileChecksum];
                 //Handle case where client contains same file contents as server file, but is named differently
-                if(clientFilenameSet.find(serverFilename) == clientFilenameSet.end()){
-                    cout << "File found on client with same content as file on server, but differently named ->" << serverFilename << ", " << serverFileChecksum << endl;
+                if (clientFilenameSet.find(serverFilename) == clientFilenameSet.end()) {
+                    cout << "File found on client with same content as file on server, but differently named ->"
+                         << serverFilename << ", " << serverFileChecksum << endl;
                 }
             }
         }
@@ -195,10 +195,9 @@ void userInteractionLoop(int sock) {
 
     string userInput;
     getline(cin, userInput);
-    if(userInput.size() <= 0){
+    if (userInput.size() <= 0) {
         std::cerr << "Please choose an option" << endl;
-    }
-    else{
+    } else {
         try {
             int userChoice = stoi(userInput);
             cout << endl;
@@ -223,7 +222,7 @@ void userInteractionLoop(int sock) {
                     break;
             }
         }
-        catch (exception& e){
+        catch (exception &e) {
             perror(e.what());
         }
     }
