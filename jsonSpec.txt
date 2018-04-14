@@ -1,16 +1,32 @@
-{version: Int, type: ["list", "listResponse", "pull", "pullResponse", "leave"],
+{
+  version: Int,
+  type: String in [
+    "listRequest",
+    "listResponse",
+    "pullRequest",
+    "pullResponse",
+    "pushRequest",
+    "pushResponse",
+    "leave",
+  ],
 
-IF TYPE == "listResponse" || TYPE == "pullResponse"
+IF TYPE == "listRequest" || TYPE == "leave"
+  // no additional information
+
+IF TYPE == "listResponse" || TYPE == "pullResponse" || TYPE = "pushResponse"
   response: {
-    IF TYPE == "listResponse"
+    IF TYPE == "listResponse" || TYPE == "pushResponse"
       [{filename: String, checksum: String}]
     IF TYPE == "pullResponse"
       [{filename: String, checksum: String, data: String}]
   }
 
-IF TYPE == "pull"
+IF TYPE == "pullRequest" || TYPE == "pushRequest"
   request: {
-    [{filename: String}]
+    IF TYPE == "pullRequest"
+      [{filename: String, checksum: String}]
+    IF TYPE == "pushRequest"
+      [{filename: String, checksum: String, data: String}]
   }
 
 }
