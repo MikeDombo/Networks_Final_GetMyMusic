@@ -1,3 +1,7 @@
+# Temporary Debugging Directories
+testClientDir/*
+testServerDir/*
+
 # Prerequisites
 *.d
 
