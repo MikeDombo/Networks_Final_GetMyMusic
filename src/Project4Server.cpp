@@ -17,7 +17,8 @@ void printHelp(char **argv) {
 void log(const std::string &logMessage) {
     std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     char* timeStr = std::ctime(&currentTime);
-    cout << "LOG (Time: " << timeStr << "): " << logMessage << endl;
+    timeStr[strlen(timeStr) - 1] = '\0';  // drop trailing newline
+    cout << "LOG: (Time: " << timeStr << ") " << logMessage << endl;
     // TODO: append that line to an actual log file
 }
 
@@ -42,26 +43,37 @@ void doPullResponse(int sock, const string &directory, const json &queryJ) {
 
 void handleClient(int sock, const string &directory) {
     auto query = receiveUntilByteEquals(sock, '\n');
-    auto queryJ = json(query);
+    try {
+        auto queryJ = json(query);  // will throw an exception if invalid JSON received
 
-    if (verifyJSONPacket(queryJ)) {
-        string type = queryJ["type"].getString();
+        if (verifyJSONPacket(queryJ)) {
+            string type = queryJ["type"].getString();
 
-        if (type == "listRequest") {
-            doListResponse(sock, directory);
-        } else if (type == "pullRequest") {
-            doPullResponse(sock, directory, queryJ);
-        } else if (type == "leave") {
-            close(sock);
-            return;
-        } else {
-            cout << "Unknown type: " << type << endl;
-            close(sock);
+            if (type == "listRequest") {
+                doListResponse(sock, directory);
+            } else if (type == "pullRequest") {
+                doPullResponse(sock, directory, queryJ);
+            } else if (type == "leave") {
+                close(sock);
+                return;
+            } else {
+                cout << "Unknown type: " << type << endl;
+                close(sock);
+            }
         }
-    }
 
-    // Loop
-    handleClient(sock, directory);
+        // Loop
+        handleClient(sock, directory);
+    } catch (std::exception& e) {
+        struct sockaddr_in clientSockaddr;
+        socklen_t addrLen = sizeof(clientSockaddr);
+        getpeername(sock, (sockaddr*) &clientSockaddr, &addrLen);
+        std::ostringstream stringStream;
+        stringStream << "Client at " << inet_ntoa(clientSockaddr.sin_addr) << ":";
+        stringStream << ((int) ntohs(clientSockaddr.sin_port)) << " unexpectedly closed connection";
+        log(stringStream.str());
+        return;
+    }
 }
 
 int main(int argc, char **argv) {

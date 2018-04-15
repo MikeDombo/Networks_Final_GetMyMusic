@@ -117,7 +117,14 @@ json getDiff(int sock) {
     map<string, set<string>> clientMap;
     set<string> serverFilenameSet = set<string>();
     set<string> clientFilenameSet = set<string>();
-    json diffStruct = json();
+    json diffStruct;
+    // allocate new JSON objects so I can push() to these JSON arrays later
+    diffStruct["uniqueOnlyClient"] = json();
+    diffStruct["uniqueOnlyServer"] = json();
+    diffStruct["duplicateOnlyClient"] = json();
+    diffStruct["duplicateOnlyServer"] = json();
+    diffStruct["duplicateBothClientServer"] = json();
+    diffStruct["conflicts"] = json();
     auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
 
     // populate clientMap and clientFilenameSet
@@ -145,13 +152,14 @@ json getDiff(int sock) {
         if (file.hasKey("checksum") && file.hasKey("filename")) {
             string sCsum = file["checksum"].getString();
             string sFname = file["filename"].getString();
+            serverFilenameSet.insert(sFname);                // add filename (guaranteed unique locally) to set
             debug(string("  Looking at server file ").append(sFname).append(" with checksum ").append(sCsum));
 
             //If the checksum isn't in the map, then create a new set and map checksum to set
             if (serverMap.find(sCsum) == serverMap.end()) {
                 set<string> fnames;
                 fnames.insert(sFname);
-                serverMap[sCsum] = serverFilenameSet;
+                serverMap[sCsum] = fnames;
             } else {
                 serverMap[sCsum].insert(sFname);
             }
@@ -166,7 +174,7 @@ json getDiff(int sock) {
         set<string> cFnames = iter->second;
         debug(string("  Looking at client file(s) with checksum ").append(cCsum));
         if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
-            debug("Found matching file(s) on server.");
+            debug("    Found matching file(s) on server.");
             json duplB;
             duplB["checksum"] = JSON(cCsum, true);
             duplB["clientFilenames"] = setToJsonList(cFnames);
@@ -218,7 +226,9 @@ json getDiff(int sock) {
     debug("  Finished comparing file checksums across client and server. Enumerating filename conflicts.");
 
     for (string cFname: clientFilenameSet) {
+        debug(string("    checking if filename ").append(cFname).append(" is on the server"));
         if (serverFilenameSet.find(cFname) != serverFilenameSet.end()) {
+            debug(string("      welllll whaddayaknow"));
             diffStruct["conflicts"].push(JSON(cFname, true));
         }
     }
@@ -412,7 +422,7 @@ int main(int argc, char **argv) {
 
 //    userInteractionLoop(sock);
     json res = getDiff(sock);
-    debug(res.getString());
+    debug(res.stringify());
 
     return 0;
 }
