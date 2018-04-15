@@ -168,7 +168,7 @@ json getDiff(int sock) {
         if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
             debug("Found matching file(s) on server.");
             json duplB;
-            duplB["checksum"] = cCsum;
+            duplB["checksum"] = JSON(cCsum, true);
             duplB["clientFilenames"] = setToJsonList(cFnames);
             duplB["serverFilenames"] = setToJsonList(serverMap[cCsum]);
             diffStruct["duplicateBothClientServer"].push(duplB);
@@ -176,15 +176,15 @@ json getDiff(int sock) {
         else if (clientMap[cCsum].size() > 1) {
             debug("    Found multiple files matching the checksum, only on the client");
             json duplC;
-            duplC["checksum"] = cCsum;
+            duplC["checksum"] = JSON(cCsum, true);
             duplC["filenames"] = setToJsonList(cFnames);
             diffStruct["duplicateOnlyClient"].push(duplC);
         }
         else {                                              // file is unique on client
             debug("    Only 1 file matches the checksum, on client");
             json uniqueC;
-            uniqueC["checksum"] = cCsum;
-            uniqueC["filename"] = *(cFnames.begin());
+            uniqueC["checksum"] = JSON(cCsum, true);
+            uniqueC["filename"] = JSON(*(cFnames.begin()), true);
             diffStruct["uniqueOnlyClient"].push(uniqueC);
         }
     }
@@ -203,15 +203,15 @@ json getDiff(int sock) {
         else if (serverMap[sCsum].size() > 1) {
             debug("    Found multiple files matching the checksum, only on the server.");
             json duplS;
-            duplS["checksum"] = sCsum;
+            duplS["checksum"] = JSON(sCsum, true);  // true = please wrap in QUOTATION marks
             duplS["filenames"] = setToJsonList(sFnames);
             diffStruct["duplicateOnlyServer"].push(duplS);
         }
         else {                                              // file is unique on server
             debug("    Only 1 file matches the checksum, on server");
             json uniqueS;
-            uniqueS["checksum"] = sCsum;
-            uniqueS["filename"] = *(sFnames.begin());
+            uniqueS["checksum"] = JSON(sCsum, true);
+            uniqueS["filename"] = JSON(*(sFnames.begin()), true);
             diffStruct["uniqueOnlyServer"].push(uniqueS);
         }
     }
@@ -219,7 +219,7 @@ json getDiff(int sock) {
 
     for (string cFname: clientFilenameSet) {
         if (serverFilenameSet.find(cFname) != serverFilenameSet.end()) {
-            diffStruct["conflicts"].push(JSON(cFname));
+            diffStruct["conflicts"].push(JSON(cFname, true));
         }
     }
 
@@ -411,7 +411,8 @@ int main(int argc, char **argv) {
     sigaction(SIGINT, &sigIntHandler, nullptr);
 
 //    userInteractionLoop(sock);
-    getDiff(sock);
+    json res = getDiff(sock);
+    debug(res.getString());
 
     return 0;
 }
