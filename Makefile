@@ -1,6 +1,14 @@
 CC=g++
-CFLAGS=-c -g -Wall --std=c++11 -fsanitize=address
-LDFLAGS=-fsanitize=address
+CFLAGS=-c -g -Wall --std=c++11
+LDFLAGS=
+
+# OS-dependent flags
+UNAME := $(shell uname)
+ifneq ($(UNAME), Linux)
+CFLAGS+=-fsanitize=address
+LDFLAGS+=-fsanitize=address
+endif
+
 EXECUTABLE=Project4Server Project4Client OfflineTester JSONTest
 
 all: testFiles Project4Client Project4Server OfflineTester JSONTest
