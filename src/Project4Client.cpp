@@ -97,7 +97,7 @@ vector<json> setToJsonList(const set<string> &values) {
     std::sort(sortedVals.begin(), sortedVals.end());
     vector<json> vec(values.size());
     for (vector<string>::iterator iter=sortedVals.begin(); iter != sortedVals.end(); ++iter)  {
-        vec.push_back(JSON(*iter));
+        vec.push_back(JSON(string("\"").append(*iter).append("\"")));
     }
     return vec;
 }
@@ -166,7 +166,7 @@ json getDiff(int sock) {
         set<string> cFnames = iter->second;
         debug(string("  Looking at client file(s) with checksum ").append(cCsum));
         if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
-            debug(string("    Found matching file(s) on server.");
+            debug("Found matching file(s) on server.");
             json duplB;
             duplB["checksum"] = cCsum;
             duplB["clientFilenames"] = setToJsonList(cFnames);
@@ -197,7 +197,7 @@ json getDiff(int sock) {
         set<string> sFnames = iter->second;
         debug(string("  Looking at server file(s) with checksum ").append(sCsum));
         if (clientMap.find(sCsum) != serverMap.end()) {     // if the client also has a file w/that checksum
-            debug(string("    Found matching file(s) on client").append(sCsum));
+            debug("    Found matching file(s) on client");
             continue;  // because we've already handled it
         }
         else if (serverMap[sCsum].size() > 1) {
