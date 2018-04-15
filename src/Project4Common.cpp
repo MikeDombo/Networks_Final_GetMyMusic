@@ -218,20 +218,28 @@ bool verifyJSONPacket(json &data) {
 
     std::string type = data["type"].getString();
 
-    if (type == "list") {
+    if (type == "listRequest") {
         return verified;
     }
     if (type == "listResponse") {
         return verified && data.hasKey("response")
                    && data["response"].isArray();
     }
-    if (type == "pullResponse") {
-        return verified && data.hasKey("response")
-                   && data["response"].isArray();
-    }
-    if (type == "pull") {
+    if (type == "pullRequest") {
         return verified && data.hasKey("request")
                    && data["request"].isArray();
+    }
+    if (type == "pullResponse") {
+        return verified && data.hasKey("response")
+               && data["response"].isArray();
+    }
+    if (type == "pushRequest") {
+        return verified && data.hasKey("request")
+               && data["request"].isArray();
+    }
+    if (type == "pushResponse") {
+        return verified && data.hasKey("response")
+               && data["response"].isArray();
     }
     if (type == "leave") {
         return verified;
@@ -329,3 +337,7 @@ vector<char> base64Decode(const string &inputString) {
   return result;
 }
 
+// This is just so I can comment out all the debug statements at once
+void debug(const std::string &debugMessage) {
+    std::cout << debugMessage << std::endl;
+}

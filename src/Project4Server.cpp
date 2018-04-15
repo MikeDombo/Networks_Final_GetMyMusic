@@ -1,4 +1,6 @@
 #include "Project4Common.h"
+#include <chrono>
+#include <ctime>
 
 using std::string;
 using std::vector;
@@ -12,17 +14,24 @@ void printHelp(char **argv) {
     exit(1);
 }
 
+void log(const std::string &logMessage) {
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    char* timeStr = std::ctime(&currentTime);
+    cout << "LOG (Time: " << timeStr << "): " << logMessage << endl;
+    // TODO: append that line to an actual log file
+}
+
 void doListResponse(int sock, const string &directory) {
     auto files = list(directory);
 
-    vector<json> jsonFiles;
+    vector<json> jsonFiles(files.size());
     for (auto f : files) {
         jsonFiles.push_back(f.getAsJSON(false));
     }
 
     json listResponsePacket;
     listResponsePacket["version"] = VERSION;
-    listResponsePacket["type"] = std::string("listResponse");
+    listResponsePacket["type"] = string("listResponse");
     listResponsePacket["response"] = jsonFiles;
     sendToSocket(sock, listResponsePacket);
 }
@@ -38,9 +47,9 @@ void handleClient(int sock, const string &directory) {
     if (verifyJSONPacket(queryJ)) {
         string type = queryJ["type"].getString();
 
-        if (type == "list") {
+        if (type == "listRequest") {
             doListResponse(sock, directory);
-        } else if (type == "pull") {
+        } else if (type == "pullRequest") {
             doPullResponse(sock, directory, queryJ);
         } else if (type == "leave") {
             close(sock);

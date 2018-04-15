@@ -29,10 +29,10 @@ build/OfflineTester.o: src/OfflineTester.cpp
 build/CCRC32.o: src/lib/CCRC32.cpp src/lib/CCRC32.h
 	$(CC) $(CFLAGS) src/lib/CCRC32.cpp -o build/CCRC32.o
 
-client: Project4Client
+client: testFiles Project4Client
 	@./Project4Client -p 30600 -s 127.0.0.1 -d ./testClientDir
 
-server: Project4Server
+server: testFiles Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
 
 build/JSONTest.o: src/JSONTest.cpp
@@ -52,6 +52,7 @@ build/HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
 	$(CC) $(CFLAGS) src/HappyPathJSON.cpp -o build/HappyPathJSON.o
 	
 testFiles:
+	@mkdir -p testClientDir testServerDir
 	@rm testClientDir/* testServerDir/* | true
 	@cp testBackupDir/client/* testClientDir/
 	@cp testBackupDir/server/* testServerDir/

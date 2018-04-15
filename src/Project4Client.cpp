@@ -55,7 +55,7 @@ void sendListRequest(int sock) {
     json listRequestPacket;
 
     listRequestPacket["version"] = VERSION;
-    listRequestPacket["type"] = std::string("list");
+    listRequestPacket["type"] = string("listRequest");
     sendToSocket(sock, listRequestPacket);
 }
 
@@ -64,11 +64,7 @@ void cleanExit(int sock) {
     close(sock);
 }
 
-void handleGetList(int sock) {
-    sendListRequest(sock);
-    auto answer = receiveUntilByteEquals(sock, '\n');
-    json answerJ = json(answer);
-
+void printListResponse(json answerJ) {
     if (verifyJSONPacket(answerJ)) {
         auto responses = answerJ["response"];
         cout << "Server Files Listing:" << endl
@@ -85,10 +81,154 @@ void handleGetList(int sock) {
     }
 }
 
-void handleGetDiff(int sock) {
-    sendListRequest(sock);
+json getListResponse(int sock) {
     auto answer = receiveUntilByteEquals(sock, '\n');
     json answerJ = json(answer);
+    return answerJ;
+}
+
+void handleGetListResponse(int sock) {
+    sendListRequest(sock);
+    printListResponse(getListResponse(sock));
+}
+
+vector<json> setToJsonList(const set<string> &values) {
+    vector<string> sortedVals(values.begin(), values.end());
+    std::sort(sortedVals.begin(), sortedVals.end());
+    vector<json> vec(values.size());
+    for (vector<string>::iterator iter=sortedVals.begin(); iter != sortedVals.end(); ++iter)  {
+        vec.push_back(JSON(*iter));
+    }
+    return vec;
+}
+
+json getDiff(int sock) {
+    /* pseudocode:
+     *  make a map of checksums to sets of filenames. This facilitates identifying duplicates
+     *  make a set of filenames on the client and a set of filenames on the server, to facilitate identifying conflicts
+     *  classify each (checksum, names) pair as duplicateOnlyClient, duplicateOnlyServer, duplicateBoth,
+     *    uniqueOnlyClient, or uniqueOnlyServer
+     *  classify filenames present in both sets as "conflicts"
+     *  return a json struct of that for further use
+     */
+    debug(string("In getDiff(").append(std::to_string(sock)).append(")."));
+    sendListRequest(sock); // do this first, and do as much as possible before waiting to read from socket
+    map<string, set<string>> serverMap;
+    map<string, set<string>> clientMap;
+    set<string> serverFilenameSet = set<string>();
+    set<string> clientFilenameSet = set<string>();
+    json diffStruct = json();
+    auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
+
+    // populate clientMap and clientFilenameSet
+    for (auto musicDatum: clientMusicDataList) {
+        string cFname = musicDatum.getFilename();
+        string cCsum = musicDatum.getChecksum();
+        debug(string("  Looking at client file ").append(cFname).append(" with checksum ").append(cCsum));
+        clientFilenameSet.insert(cFname);                // add filename (guaranteed unique locally) to set
+        //Build the client map
+        if (clientMap.find(cCsum) == clientMap.end()) {     // if new checksum, add a new map entry
+            set<string> fnames;
+            fnames.insert(cFname);
+            clientMap[cCsum] = fnames;
+        } else {                                            // else, update existing entry
+            clientMap[cCsum].insert(cFname);
+        }
+    }
+    debug("  Finished organizing client files. Waiting for response from server.");
+    auto answerJ = getListResponse(sock);
+    debug("  Received response from server");
+    auto serverFilesResponse = answerJ["response"];         //Format: [{filename: String, checksum: String}]
+
+    // populate serverMap and serverFilenameSet
+    for (auto file: serverFilesResponse) {
+        if (file.hasKey("checksum") && file.hasKey("filename")) {
+            string sCsum = file["checksum"].getString();
+            string sFname = file["filename"].getString();
+            debug(string("  Looking at server file ").append(sFname).append(" with checksum ").append(sCsum));
+
+            //If the checksum isn't in the map, then create a new set and map checksum to set
+            if (serverMap.find(sCsum) == serverMap.end()) {
+                set<string> fnames;
+                fnames.insert(sFname);
+                serverMap[sCsum] = serverFilenameSet;
+            } else {
+                serverMap[sCsum].insert(sFname);
+            }
+        }
+    }
+    debug("  Finished organizing server files. Comparing file checksums across client and server.");
+
+    // iterate through clientMap, classifying checksums
+    for(auto iter = clientMap.begin(); iter != clientMap.end(); ++iter)
+    {
+        string cCsum =  iter->first;
+        set<string> cFnames = iter->second;
+        debug(string("  Looking at client file(s) with checksum ").append(cCsum));
+        if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
+            debug(string("    Found matching file(s) on server.");
+            json duplB;
+            duplB["checksum"] = cCsum;
+            duplB["clientFilenames"] = setToJsonList(cFnames);
+            duplB["serverFilenames"] = setToJsonList(serverMap[cCsum]);
+            diffStruct["duplicateBothClientServer"].push(duplB);
+        }
+        else if (clientMap[cCsum].size() > 1) {
+            debug("    Found multiple files matching the checksum, only on the client");
+            json duplC;
+            duplC["checksum"] = cCsum;
+            duplC["filenames"] = setToJsonList(cFnames);
+            diffStruct["duplicateOnlyClient"].push(duplC);
+        }
+        else {                                              // file is unique on client
+            debug("    Only 1 file matches the checksum, on client");
+            json uniqueC;
+            uniqueC["checksum"] = cCsum;
+            uniqueC["filename"] = *(cFnames.begin());
+            diffStruct["uniqueOnlyClient"].push(uniqueC);
+        }
+    }
+    debug("  Finished iterating through client checksums. Iterating through server checksums.");
+
+    // iterate through serverMap, classifying checksums
+    for(auto iter = serverMap.begin(); iter != serverMap.end(); ++iter)
+    {
+        string sCsum =  iter->first;
+        set<string> sFnames = iter->second;
+        debug(string("  Looking at server file(s) with checksum ").append(sCsum));
+        if (clientMap.find(sCsum) != serverMap.end()) {     // if the client also has a file w/that checksum
+            debug(string("    Found matching file(s) on client").append(sCsum));
+            continue;  // because we've already handled it
+        }
+        else if (serverMap[sCsum].size() > 1) {
+            debug("    Found multiple files matching the checksum, only on the server.");
+            json duplS;
+            duplS["checksum"] = sCsum;
+            duplS["filenames"] = setToJsonList(sFnames);
+            diffStruct["duplicateOnlyServer"].push(duplS);
+        }
+        else {                                              // file is unique on server
+            debug("    Only 1 file matches the checksum, on server");
+            json uniqueS;
+            uniqueS["checksum"] = sCsum;
+            uniqueS["filename"] = *(sFnames.begin());
+            diffStruct["uniqueOnlyServer"].push(uniqueS);
+        }
+    }
+    debug("  Finished comparing file checksums across client and server. Enumerating filename conflicts.");
+
+    for (string cFname: clientFilenameSet) {
+        if (serverFilenameSet.find(cFname) != serverFilenameSet.end()) {
+            diffStruct["conflicts"].push(JSON(cFname));
+        }
+    }
+
+    debug("exiting getDiff().");
+    return diffStruct;
+}
+
+void handleGetDiff(int sock) {
+    auto answerJ = getListResponse(sock);
 
     if (verifyJSONPacket(answerJ)) {
         cout << "Diff:" << endl
@@ -97,8 +237,8 @@ void handleGetDiff(int sock) {
         auto serverFilesResponse = answerJ["response"]; //Format: [{filename: String, checksum: String}]
         auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
 
-        //Map where keys represent checksum of files, and set contains corresponding filenames
-        //Assumes that multiple files, although differently named can contain the same contents
+        // Map where keys represent checksum of files, and set contains corresponding filenames
+        // Assumes that multiple files, although differently named can contain the same contents
         map<string, set<string>> serverMap;
         map<string, set<string>> clientMap;
 
@@ -204,7 +344,7 @@ void userInteractionLoop(int sock) {
 
             switch (userChoice) {
                 case 1:
-                    handleGetList(sock);
+                    handleGetListResponse(sock);
                     break;
                 case 2:
                     handleGetDiff(sock);
@@ -270,7 +410,8 @@ int main(int argc, char **argv) {
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, nullptr);
 
-    userInteractionLoop(sock);
+//    userInteractionLoop(sock);
+    getDiff(sock);
 
     return 0;
 }
