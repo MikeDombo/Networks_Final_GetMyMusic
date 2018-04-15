@@ -1,12 +1,28 @@
 #include "Project4Common.h"
-#include "lib/base64.h"
-#include <assert.h>     /* assert */
+#include "lib/base64.h" // to check if our homebrewed b64 fxns match the library functionality
+#include <assert.h>     // to use assert statements in our tester
+
+using std::string;
+using std::vector;
+using std::ios;
+using std::stringstream;
+using std::ifstream;
+using std::istreambuf_iterator;
+using std::istringstream;
+using std::cout;
+using std::endl;
+using std::cin;
+using std::hex;
+using std::exception;
+using std::set;
+using std::map;
 
 void testBase64Encoding();
 void testBase64EncodingHappyString();
+void testFilenameIncrement();
 
 int main() {
-  testBase64Encoding();
+  testFilenameIncrement();
   return 0;
 }
 
@@ -15,34 +31,38 @@ void testBase64Encoding() {
   testBase64EncodingHappyString();
   
   // 2. Equivalent conversions for binary file
-  std::cout << "Testing conversion of \"" << "blob.binary" << "\":" << std::endl;
+  cout << "Testing conversion of \"" << "blob.binary" << "\":" << endl;
   
-  std::ifstream input("testServerDir/blob.binary", std::ios::binary);
+  ifstream input("testServerDir/blob.binary", ios::binary);
   // copies all data into buffer
-  std::vector<char> buffer((std::istreambuf_iterator<char>(input)),
-                           std::istreambuf_iterator<char>());
-  std::string strBuffer(buffer.begin(), buffer.end());
-  std::string target;
+  vector<char> buffer((istreambuf_iterator<char>(input)),
+                           istreambuf_iterator<char>());
+  string strBuffer(buffer.begin(), buffer.end());
+  string target;
   Base64::Encode(strBuffer, &target);
-  std::cout << "    Target Output: \"" << target << "\"" << std::endl;
+  cout << "    Target Output: \"" << target << "\"" << endl;
 
-  std::string myresult = base64Encode(buffer);
-  std::cout << "    Actual Output: \"" << myresult << "\"" << std::endl;
+  string myresult = base64Encode(buffer);
+  cout << "    Actual Output: \"" << myresult << "\"" << endl;
   assert(myresult == target);
 }
 
 void testBase64EncodingHappyString() {
-  std::string simpleString = "lalala happy string";
-  std::cout << "Testing conversion of \"" << simpleString << "\":" << std::endl;
+  string simpleString = "lalala happy string";
+  cout << "Testing conversion of \"" << simpleString << "\":" << endl;
 
-  std::string target;
+  string target;
   Base64::Encode(simpleString, &target);
-  std::cout << "    Target Output: \"" << target << "\"" << std::endl;
+  cout << "    Target Output: \"" << target << "\"" << endl;
   
-  std::istringstream input(simpleString);
-  std::vector<char> buffer((std::istreambuf_iterator<char>(input)),
-                           std::istreambuf_iterator<char>());
-  std::string myresult = base64Encode(buffer);
-  std::cout << "    Actual Output: \"" << myresult << "\"" << std::endl;
+  istringstream input(simpleString);
+  vector<char> buffer((istreambuf_iterator<char>(input)),
+                           istreambuf_iterator<char>());
+  string myresult = base64Encode(buffer);
+  cout << "    Actual Output: \"" << myresult << "\"" << endl;
   assert(myresult == target);
+}
+
+void testFilenameIncrement() {
+  assert(false);
 }
