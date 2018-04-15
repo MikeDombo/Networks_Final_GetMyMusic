@@ -197,7 +197,7 @@ json getDiff(int sock) {
         string sCsum =  iter->first;
         set<string> sFnames = iter->second;
         debug(string("  Looking at server file(s) with checksum ").append(sCsum));
-        if (clientMap.find(sCsum) != serverMap.end()) {     // if the client also has a file w/that checksum
+        if (clientMap.find(sCsum) != clientMap.end()) {     // if the client also has a file w/that checksum
             debug("    Found matching file(s) on client");
             continue;  // because we've already handled it
         }
@@ -218,17 +218,26 @@ json getDiff(int sock) {
     }
     debug("  Finished comparing file checksums across client and server. Enumerating filename conflicts.");
 
+    /* Commented out b/c it doesn't consider the case where "conflicts" have the same checksum
     for (string cFname: clientFilenameSet) {
         debug(string("    checking if filename ").append(cFname).append(" is on the server"));
         if (serverFilenameSet.find(cFname) != serverFilenameSet.end()) {
-            debug(string("      welllll whaddayaknow"));
+            debug(string("      File ").append(cFname).append(" is on both the client and the server."));
+            if(
             diffStruct["conflicts"].push(JSON(cFname, true));
         }
     }
+    */
 
     debug("exiting getDiff().");
     return diffStruct;
 }
+
+/*
+json getPullRequestFromDiffStruct(json diffStruct) {
+    return nullptr;
+}
+*/
 
 void handleGetDiff(int sock) {
     auto answerJ = getListResponse(sock);
