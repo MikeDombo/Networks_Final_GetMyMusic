@@ -20,6 +20,7 @@ using std::map;
 void testBase64Encoding();
 void testBase64EncodingHappyString();
 void testFilenameIncrement();
+string filenameIncrement(const string &filename, const set<string> &existingFilenames);
 
 int main() {
   testFilenameIncrement();
@@ -64,5 +65,31 @@ void testBase64EncodingHappyString() {
 }
 
 void testFilenameIncrement() {
-  assert(false);
+  cout << "Testing filenameIncrement()" << endl;
+  set<string> existingFilenames;
+  existingFilenames.insert("file");
+  existingFilenames.insert("file1.ext");
+  existingFilenames.insert("file2.ext");
+  existingFilenames.insert("file2 (1).ext");
+  existingFilenames.insert("file2 (2).ext");
+
+  cout << "  Check if a filename not present is successfully unchanged by filenameIncrement" << endl;
+  string targetFname = filenameIncrement("file0", existingFilenames);
+  assert(targetFname == "file0");
+
+  cout << "  Check if a filename present without an extension gets a (1) afterward" << endl;
+  targetFname = filenameIncrement("file", existingFilenames);
+  assert(targetFname == "file (1)");
+ 
+  cout << "  Check if a filename present with an extension gets a (1) before the ext." << endl;
+  targetFname = filenameIncrement("file1.ext", existingFilenames);
+  assert(targetFname == "file1 (1).ext");
+
+  cout << "  Check if a filename present with n increments gets an (n+1) before the ext." << endl;
+  targetFname = filenameIncrement("file2.ext", existingFilenames);
+  assert(targetFname == "file2 (3).ext");
+}
+
+string filenameIncrement(const string &filename, const set<string> &existingFilenames) {
+  return "";
 }
