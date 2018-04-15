@@ -92,14 +92,14 @@ void handleGetListResponse(int sock) {
     printListResponse(getListResponse(sock));
 }
 
-vector<json> setToJsonList(const set<string> &values) {
+json setToJsonList(const set<string> &values) {
     vector<string> sortedVals(values.begin(), values.end());
     std::sort(sortedVals.begin(), sortedVals.end());
-    vector<json> vec(values.size());
+    json jList;
     for (vector<string>::iterator iter=sortedVals.begin(); iter != sortedVals.end(); ++iter)  {
-        vec.push_back(JSON(string("\"").append(*iter).append("\"")));
+        jList.push(JSON(*iter, true));
     }
-    return vec;
+    return jList;
 }
 
 json getDiff(int sock) {
@@ -118,13 +118,6 @@ json getDiff(int sock) {
     set<string> serverFilenameSet = set<string>();
     set<string> clientFilenameSet = set<string>();
     json diffStruct;
-    // allocate new JSON objects so I can push() to these JSON arrays later
-    diffStruct["uniqueOnlyClient"] = json();
-    diffStruct["uniqueOnlyServer"] = json();
-    diffStruct["duplicateOnlyClient"] = json();
-    diffStruct["duplicateOnlyServer"] = json();
-    diffStruct["duplicateBothClientServer"] = json();
-    diffStruct["conflicts"] = json();
     auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
 
     // populate clientMap and clientFilenameSet
