@@ -193,6 +193,22 @@ void testBuildPushPullOneFileClient() {
   assert(pushResult == pushTarget);
 }
 
+void testBuildPushPullDuplicatesServer() {
+  cout << "  Case where a server has two copies each of two files" << endl;
+  json src = json("{\"duplicateOnlyServer\":[{\"checksum\":\"122333\",\"filenames\":[\"file10\",\"file11\"]},{\"checksum\":\"333221\",\"filenames\":[\"file12\",\"file13\"]}]}");
+  json pullTarget = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[{\"filename\":\"file10\",\"checksum\":\"122333\"},{\"filename\":\"file12\",\"checksum\":\"333221\"}]}");
+  json pullResult = buildPullRequestFromDiffStruct(src);
+  cout << "    Target output (pull): " << pullTarget.stringify() << endl;
+  cout << "    Actual output (pull): " << pullResult.stringify() << endl;
+  assert(pullResult == pullTarget);
+
+  json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[]}");
+  json pushResult = buildPushRequestFromDiffStruct(src);
+  cout << "    Target output (push): " << pushTarget.stringify() << endl;
+  cout << "    Actual output (push): " << pushResult.stringify() << endl;
+  assert(pushResult == pushTarget);
+}
+
 void testBuildPushPullDuplicatesClient() {
   cout << "  Case where a client has two copies of the same file" << endl;
   json src = json("{\"duplicateOnlyClient\":[{\"checksum\":\"1234\",\"filenames\":[\"file5\",\"file6\"]}]}");
@@ -200,7 +216,7 @@ void testBuildPushPullDuplicatesClient() {
   json pullResult = buildPullRequestFromDiffStruct(src);
   cout << "    Target output (pull): " << pullTarget.stringify() << endl;
   cout << "    Actual output (pull): " << pullResult.stringify() << endl;
-  assert(pullResult.stringify() == pullTarget.stringify());
+  assert(pullResult == pullTarget);
 
   json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[{\"filename\":\"file5\",\"checksum\":\"1234\",\"data\":\"\"}]}");
   json pushResult = buildPushRequestFromDiffStruct(src);
@@ -214,5 +230,6 @@ void testBuildPushPull() {
   testBuildPushPullOneFileServer();
   testBuildPushPullOneFileClient();
   testBuildPushPullDuplicatesClient();
+  testBuildPushPullDuplicatesServer();
   testBuildPushPullComplicated();
 }

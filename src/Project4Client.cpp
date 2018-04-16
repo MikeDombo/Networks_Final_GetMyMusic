@@ -290,9 +290,17 @@ json buildPullRequestFromDiffStruct(json diffStruct) {
     emptyArr.makeArray();
     pullRequest["request"] = emptyArr;
     if (diffStruct.hasKey("uniqueOnlyServer")) {
-      for (auto file: diffStruct["uniqueOnlyServer"]) {
-        pullRequest["request"].push(file);
-      }
+        for (auto file: diffStruct["uniqueOnlyServer"]) {
+            pullRequest["request"].push(file);
+        }
+    }
+    if (diffStruct.hasKey("duplicateOnlyServer")) {
+        for (auto fileish: diffStruct["duplicateOnlyServer"]) {
+            json pullDatum;
+            pullDatum["filename"] = (fileish["filenames"])[0];
+            pullDatum["checksum"] = fileish["checksum"];
+            pullRequest["request"].push(pullDatum);
+        }
     }
     return pullRequest;
 }
