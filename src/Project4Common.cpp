@@ -10,6 +10,7 @@ using std::ifstream;
 using std::istreambuf_iterator;
 using std::size_t;
 using std::set;
+using std::map;
 
 InputParser::InputParser(int &argc, char **argv) {
     for (int i = 1; i < argc; ++i) {
