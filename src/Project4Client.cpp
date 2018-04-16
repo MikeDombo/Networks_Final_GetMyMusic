@@ -306,6 +306,26 @@ json buildPullRequestFromDiffStruct(json diffStruct) {
 }
 
 void handleGetDiff(int sock) {
+    cout << "Diff:" << endl;
+    cout << "=====================" << endl;
+    auto diffStruct = getDiff(sock);
+    auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
+    debug("pullRequest: " + pullRequest.stringify());
+    auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+    debug("pushRequest: " + pushRequest.stringify());
+    cout << "  On Server but not on Client:" << endl;
+    for (auto file: pullRequest["request"]) {
+        cout << "    + " << file["filename"].getString() << endl;
+    }
+    cout << "  On Client but not on Server:" << endl;
+    for (auto fileish: pushRequest["request"]) {
+        cout << "    + " << fileish["filename"].getString() << endl;
+    }
+    cout << endl;
+}
+
+/*
+void handleGetDiff(int sock) {
     auto answerJ = getListResponse(sock);
 
     if (verifyJSONPacket(answerJ)) {
@@ -389,6 +409,7 @@ void handleGetDiff(int sock) {
 
     cout << endl;
 }
+*/
 
 void handleDoSync(int sock) {
     sendListRequest(sock);
@@ -449,7 +470,6 @@ void userInteractionLoop(int sock) {
     userInteractionLoop(sock);
 }
 
-/*
 int main(int argc, char **argv) {
     unsigned int serverPort;
     string serverHost;
@@ -489,10 +509,7 @@ int main(int argc, char **argv) {
     sigIntHandler.sa_flags = 0;
     sigaction(SIGINT, &sigIntHandler, nullptr);
 
-//    userInteractionLoop(sock);
-    json res = getDiff(sock);
-    debug(res.stringify());
+    userInteractionLoop(sock);
 
     return 0;
 }
-*/
