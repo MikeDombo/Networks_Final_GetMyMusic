@@ -1,9 +1,11 @@
 #include "Project4Common.h"
+#include <assert.h>
 
 using std::string;
 using std::vector;
 using std::ios;
 using std::stringstream;
+using std::ofstream;
 using std::cout;
 using std::endl;
 using std::cin;
@@ -55,7 +57,7 @@ void sendListRequest(int sock) {
     json listRequestPacket;
 
     listRequestPacket["version"] = VERSION;
-    listRequestPacket["type"] = std::string("list");
+    listRequestPacket["type"] = string("listRequest");
     sendToSocket(sock, listRequestPacket);
 }
 
@@ -64,11 +66,7 @@ void cleanExit(int sock) {
     close(sock);
 }
 
-void handleGetList(int sock) {
-    sendListRequest(sock);
-    auto answer = receiveUntilByteEquals(sock, '\n');
-    json answerJ = json(answer);
-
+void printListResponse(json answerJ) {
     if (verifyJSONPacket(answerJ)) {
         auto responses = answerJ["response"];
         cout << "Server Files Listing:" << endl
@@ -85,95 +83,307 @@ void handleGetList(int sock) {
     }
 }
 
-void handleGetDiff(int sock) {
-    sendListRequest(sock);
+json getResponse(int sock) {
     auto answer = receiveUntilByteEquals(sock, '\n');
     json answerJ = json(answer);
+    return answerJ;
+}
 
-    if (verifyJSONPacket(answerJ)) {
-        cout << "Diff:" << endl
-             << "=====================" << endl;
+json getListResponse(int sock) {
+    json answerJ = getResponse(sock);
+    assert(answerJ["type"].getString() == "listResponse");
+    return answerJ;
+}
 
-        auto serverFilesResponse = answerJ["response"]; //Format: [{filename: String, checksum: String}]
-        auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
+void handleGetListResponse(int sock) {
+    sendListRequest(sock);
+    printListResponse(getListResponse(sock));
+}
 
-        //Map where keys represent checksum of files, and set contains corresponding filenames
-        //Assumes that multiple files, although differently named can contain the same contents
-        map<string, set<string>> serverMap;
-        map<string, set<string>> clientMap;
+json setToJsonList(const set<string> &values) {
+    vector<string> sortedVals(values.begin(), values.end());
+    std::sort(sortedVals.begin(), sortedVals.end());
+    json jList;
+    for (vector<string>::iterator iter=sortedVals.begin(); iter != sortedVals.end(); ++iter)  {
+        jList.push(JSON(*iter, true));
+    }
+    return jList;
+}
 
-        //Build map of server file checksum to set of filenames
-        for (auto file: serverFilesResponse) {
-            if (file.hasKey("checksum") && file.hasKey("filename")) {
-                string serverFileChecksum = file["checksum"].getString();
-                string serverFilename = file["filename"].getString();
-                set<string> serverFilenameSet;
+void considerClientToServerConflict(json &diffStruct, const string &clientFilename, const set<string> &serverFilenameSet) {
+    if (serverFilenameSet.find(clientFilename) != serverFilenameSet.end()) {
+        json cliToServConfl;
+        cliToServConfl["clientFilename"] = clientFilename;
+        cliToServConfl["serverTargetFilename"] = filenameIncrement(clientFilename, serverFilenameSet);
+        diffStruct["clientToServerConflicts"].push(cliToServConfl);
+    }
+}
 
-                //If the checksum isn't in the map, then create a new set and map checksum to set
-                if (serverMap.find(serverFileChecksum) == serverMap.end()) {
-                    serverFilenameSet.insert(serverFilename);
-                    serverMap[serverFileChecksum] = serverFilenameSet;
-                } else {
-                    serverFilenameSet = serverMap[serverFileChecksum];
-                    serverFilenameSet.insert(serverFilename);
-                }
-            }
+void considerServerToClientConflict(json &diffStruct, const string &serverFilename, const set<string> &clientFilenameSet) {
+    if (clientFilenameSet.find(serverFilename) != clientFilenameSet.end()) {
+        json servToCliConfl;
+        servToCliConfl["serverFilename"] = serverFilename;
+        servToCliConfl["clientTargetFilename"] = filenameIncrement(serverFilename, clientFilenameSet);
+        diffStruct["serverToClientConflicts"].push(servToCliConfl);
+    }
+}
+
+json buildDiffStruct(const map<string, set<string> > &clientMap, const set<string> &clientFilenameSet, const map<string, set<string> > &serverMap, const set<string> &serverFilenameSet) {
+    json diffStruct;
+    // iterate through clientMap, classifying checksums
+    for(auto iter = clientMap.begin(); iter != clientMap.end(); ++iter)
+    {
+        string cCsum =  iter->first;
+        set<string> cFnames = iter->second;
+        set<string> tmpFnames;
+        debug(string("  Looking at client file(s) with checksum ").append(cCsum));
+        if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
+            debug("    Found matching file(s) on server.");
+            json duplB;
+            duplB["checksum"] = JSON(cCsum, true);
+            duplB["clientFilenames"] = setToJsonList(cFnames);
+            tmpFnames = (serverMap.find(cCsum))->second;  // can't use [] access b/c serverMap is const
+            duplB["serverFilenames"] = setToJsonList(tmpFnames);
+            diffStruct["duplicateBothClientServer"].push(duplB);
         }
-
-        //Prints files found on client but not on server and builds map of client file checksums and filenames
-        for (auto musicData: clientMusicDataList) {
-            string clientFilename = musicData.getFilename();
-            string clientFileChecksum = musicData.getChecksum();
-            set<string> clientFilenameSet;
-
-            //If checksum isn't present in server files, print out the client file name and checksum
-            if (serverMap.find(clientFileChecksum) == serverMap.end()) {
-                cout << "File found on client, but not on server -> " << clientFilename << ", " << clientFileChecksum
-                     << endl;
-            } else {
-                set<string> serverFilenameSet = serverMap[clientFileChecksum];
-                //Handle case where server contains same file contents as client file, but is named differently
-                if (serverFilenameSet.find(clientFilename) == serverFilenameSet.end()) {
-                    cout << "File found on server with same content as file on client, but differently named -> "
-                         << clientFilename << ", " << clientFileChecksum << endl;
-                }
-            }
-
-            //Build the client map
-            if (clientMap.find(clientFileChecksum) == clientMap.end()) {
-                clientFilenameSet.insert(clientFilename);
-                clientMap[clientFileChecksum] = clientFilenameSet;
-            } else {
-                clientFilenameSet = clientMap[clientFileChecksum];
-                clientFilenameSet.insert(clientFilename);
-            }
+        else if (cFnames.size() > 1) {
+            debug("    Found multiple files matching the checksum, only on the client");
+            json duplC;
+            duplC["checksum"] = JSON(cCsum, true);
+            duplC["filenames"] = setToJsonList(cFnames);
+            diffStruct["duplicateOnlyClient"].push(duplC);
+            // if the lexicographically first duplicate filename on the client is also in serverFilenames, we have a conflict.
+            string firstFname = (duplC["filenames"])[0].getString();
+            considerClientToServerConflict(diffStruct, firstFname, serverFilenameSet);
         }
+        else {                                              // file is unique on client
+            debug("    Only 1 file matches the checksum, on client");
+            json uniqueC;
+            uniqueC["checksum"] = JSON(cCsum, true);
+            string fname = *(cFnames.begin());
+            uniqueC["filename"] = JSON(fname, true);
+            diffStruct["uniqueOnlyClient"].push(uniqueC);
+            considerClientToServerConflict(diffStruct, fname, serverFilenameSet);
+        }
+    }
+    debug("  Finished iterating through client checksums. Iterating through server checksums.");
 
-        //Prints files found on server but not on client
-        for (auto file: serverFilesResponse) {
-            string serverFileChecksum = file["checksum"].getString();
-            string serverFilename = file["filename"].getString();
+    // iterate through serverMap, classifying checksums
+    for(auto iter = serverMap.begin(); iter != serverMap.end(); ++iter)
+    {
+        string sCsum =  iter->first;
+        set<string> sFnames = iter->second;
+        debug(string("  Looking at server file(s) with checksum ").append(sCsum));
+        if (clientMap.find(sCsum) != clientMap.end()) {     // if the client also has a file w/that checksum
+            debug("    Found matching file(s) on client");
+            continue;  // because we've already handled it
+        }
+        else if (sFnames.size() > 1) {
+            debug("    Found multiple files matching the checksum, only on the server.");
+            json duplS;
+            duplS["checksum"] = JSON(sCsum, true);  // true = please wrap in QUOTATION marks
+            duplS["filenames"] = setToJsonList(sFnames);
+            diffStruct["duplicateOnlyServer"].push(duplS);
+            // if the lexicographically first duplicate filename on the server is also in clientFilenames, we have a conflict.
+            string firstFname = (duplS["filenames"])[0].getString();
+            considerServerToClientConflict(diffStruct, firstFname, clientFilenameSet);
+        }
+        else {                                              // file is unique on server
+            debug("    Only 1 file matches the checksum, on server");
+            json uniqueS;
+            uniqueS["checksum"] = JSON(sCsum, true);
+            string fname = *(sFnames.begin());
+            uniqueS["filename"] = JSON(fname, true);
+            diffStruct["uniqueOnlyServer"].push(uniqueS);
+            considerServerToClientConflict(diffStruct, fname, clientFilenameSet);
+        }
+    }
+    return diffStruct;
+}
 
-            //If checksum isn't present in server files, print out the client file name and checksum
-            if (clientMap.find(serverFileChecksum) == clientMap.end()) {
-                cout << "Found on server, but not on client -> " << serverFilename << ", " << serverFileChecksum
-                     << endl;
+json getDiff(int sock) {
+    /* pseudocode:
+     *  make a map of checksums to sets of filenames. This facilitates identifying duplicates
+     *  make a set of filenames on the client and a set of filenames on the server, to facilitate identifying conflicts
+     *  classify each (checksum, names) pair as duplicateOnlyClient, duplicateOnlyServer, duplicateBoth,
+     *    uniqueOnlyClient, or uniqueOnlyServer
+     *  classify filenames present in both sets as "conflicts"
+     *  return a json struct of that for further use
+     */
+    debug(string("In getDiff(").append(std::to_string(sock)).append(")."));
+    sendListRequest(sock); // do this first, and do as much as possible before waiting to read from socket
+    map<string, set<string>> serverMap;
+    map<string, set<string>> clientMap;
+    set<string> serverFilenameSet = set<string>();
+    set<string> clientFilenameSet = set<string>();
+    auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
+
+    // populate clientMap and clientFilenameSet
+    for (auto musicDatum: clientMusicDataList) {
+        string cFname = musicDatum.getFilename();
+        string cCsum = musicDatum.getChecksum();
+        debug(string("  Looking at client file ").append(cFname).append(" with checksum ").append(cCsum));
+        clientFilenameSet.insert(cFname);                // add filename (guaranteed unique locally) to set
+        //Build the client map
+        if (clientMap.find(cCsum) == clientMap.end()) {     // if new checksum, add a new map entry
+            set<string> fnames;
+            fnames.insert(cFname);
+            clientMap[cCsum] = fnames;
+        } else {                                            // else, update existing entry
+            clientMap[cCsum].insert(cFname);
+        }
+    }
+    debug("  Finished organizing client files. Waiting for response from server.");
+    auto answerJ = getListResponse(sock);
+    debug("  Received response from server");
+    auto serverFilesResponse = answerJ["response"];         //Format: [{filename: String, checksum: String}]
+
+    // populate serverMap and serverFilenameSet
+    for (auto file: serverFilesResponse) {
+        if (file.hasKey("checksum") && file.hasKey("filename")) {
+            string sCsum = file["checksum"].getString();
+            string sFname = file["filename"].getString();
+            serverFilenameSet.insert(sFname);                // add filename (guaranteed unique locally) to set
+            debug(string("  Looking at server file ").append(sFname).append(" with checksum ").append(sCsum));
+
+            //If the checksum isn't in the map, then create a new set and map checksum to set
+            if (serverMap.find(sCsum) == serverMap.end()) {
+                set<string> fnames;
+                fnames.insert(sFname);
+                serverMap[sCsum] = fnames;
             } else {
-                set<string> clientFilenameSet = clientMap[serverFileChecksum];
-                //Handle case where client contains same file contents as server file, but is named differently
-                if (clientFilenameSet.find(serverFilename) == clientFilenameSet.end()) {
-                    cout << "File found on client with same content as file on server, but differently named ->"
-                         << serverFilename << ", " << serverFileChecksum << endl;
-                }
+                serverMap[sCsum].insert(sFname);
             }
         }
     }
+    debug("  Finished organizing server files. Comparing file checksums across client and server.");
 
+    json diffStruct = buildDiffStruct(clientMap, clientFilenameSet, serverMap, serverFilenameSet);
+    return diffStruct;
+}
+
+json buildPushRequestFromDiffStruct(json diffStruct) {
+    json pushRequest;
+    pushRequest["version"] = VERSION;
+    pushRequest["type"] = JSON("pushRequest", true);
+    json emptyArr;
+    emptyArr.makeArray();
+    pushRequest["request"] = emptyArr;
+    if (diffStruct.hasKey("uniqueOnlyClient")) {
+        for (auto file: diffStruct["uniqueOnlyClient"]) {
+            json pushDatum;
+            pushDatum["filename"] = file["filename"];
+            pushDatum["checksum"] = file["checksum"];
+            pushDatum["data"] = JSON("\"\"");
+            pushRequest["request"].push(pushDatum);
+        }
+    }
+    if (diffStruct.hasKey("duplicateOnlyClient")) {
+        for (auto fileish: diffStruct["duplicateOnlyClient"]) {
+            json pushDatum;
+            pushDatum["filename"] = (fileish["filenames"])[0];
+            pushDatum["checksum"] = fileish["checksum"];
+            pushDatum["data"] = JSON("\"\"");
+            pushRequest["request"].push(pushDatum);
+        }
+    }
+    return pushRequest;
+}
+
+json buildPullRequestFromDiffStruct(json diffStruct) {
+    json pullRequest;
+    pullRequest["version"] = VERSION;
+    pullRequest["type"] = JSON("pullRequest", true);
+    json emptyArr;
+    emptyArr.makeArray();
+    pullRequest["request"] = emptyArr;
+    if (diffStruct.hasKey("uniqueOnlyServer")) {
+        for (auto file: diffStruct["uniqueOnlyServer"]) {
+            pullRequest["request"].push(file);
+        }
+    }
+    if (diffStruct.hasKey("duplicateOnlyServer")) {
+        for (auto fileish: diffStruct["duplicateOnlyServer"]) {
+            json pullDatum;
+            pullDatum["filename"] = (fileish["filenames"])[0];
+            pullDatum["checksum"] = fileish["checksum"];
+            pullRequest["request"].push(pullDatum);
+        }
+    }
+    return pullRequest;
+}
+
+void handleGetDiff(int sock) {
+    cout << "Diff:" << endl;
+    cout << "=====================" << endl;
+    auto diffStruct = getDiff(sock);
+    auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
+    debug("pullRequest: " + pullRequest.stringify());
+    auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+    debug("pushRequest: " + pushRequest.stringify());
+    cout << "  On Server but not on Client:" << endl;
+    for (auto file: pullRequest["request"]) {
+        cout << "    + " << file["filename"].getString() << endl;
+    }
+    cout << "  On Client but not on Server:" << endl;
+    for (auto fileish: pushRequest["request"]) {
+        cout << "    + " << fileish["filename"].getString() << endl;
+    }
     cout << endl;
 }
 
+bool isResponseComplete(json response, json request) {
+    int numRequested = 0;
+    int numReceived = 0;
+    for (auto f: request["request"]) {
+      ++numRequested;
+    }
+    for (auto f: response["response"]) {
+      ++numReceived;
+    }
+    return numRequested == numReceived;
+}
+
+bool handlePullResponse(json pullResponse, json pullRequest) {
+    for (auto fileDatum: pullResponse) {
+        auto dataIterable = base64Decode(fileDatum["data"].getString());
+        string data = string(dataIterable.begin(), dataIterable.end());
+        ofstream fileWriter(directory + fileDatum["filename"].getString());
+        fileWriter << data;
+        fileWriter.close();
+    }
+    return isResponseComplete(pullResponse, pullRequest);
+}
+
 void handleDoSync(int sock) {
-    sendListRequest(sock);
+    cout << "Sync:" << endl;
+    cout << "=====================" << endl;
+    auto diffStruct = getDiff(sock);
+    auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
+    debug("pullRequest: " + pullRequest.stringify());
+    auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+    debug("pushRequest: " + pushRequest.stringify());
+    for (auto iter = (pushRequest["request"]).begin(); iter != (pushRequest["request"]).end(); ++iter) {
+        debug(string("  Looking at file ").append(((*iter)["filename"]).getString()));
+        string path = directory + (((*iter)["filename"]).getString());
+        debug(string("    it has path ").append(path));
+        MusicData musicDatum(path);
+        auto jDatum = musicDatum.getAsJSON(true);
+        debug(string("    it has data ").append(jDatum["data"].getString()));
+        (*iter)["data"] = jDatum["data"];
+    }
+    debug("pushRequest (modified):" + pushRequest.stringify());
+    debug("sending pushRequest");
+    sendToSocket(sock, pushRequest);
+    json pushResponse = getResponse(sock);
+    
+    debug("sending pullRequest");
+    sendToSocket(sock, pullRequest);
+    json pullResponse = getResponse(sock);
+
+    if (not handlePullResponse(pullResponse, pullRequest) or not isResponseComplete(pushResponse, pushRequest)) {
+        cout << "Incomplete sync. Consider trying again." << endl;
+    }
 }
 
 void handleDoPull(int sock) {
@@ -204,7 +414,7 @@ void userInteractionLoop(int sock) {
 
             switch (userChoice) {
                 case 1:
-                    handleGetList(sock);
+                    handleGetListResponse(sock);
                     break;
                 case 2:
                     handleGetDiff(sock);

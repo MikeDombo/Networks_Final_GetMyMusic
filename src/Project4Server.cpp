@@ -1,4 +1,6 @@
 #include "Project4Common.h"
+#include <chrono>
+#include <ctime>
 
 using std::string;
 using std::vector;
@@ -12,47 +14,73 @@ void printHelp(char **argv) {
     exit(1);
 }
 
+void log(const std::string &logMessage) {
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    char* timeStr = std::ctime(&currentTime);
+    timeStr[strlen(timeStr) - 1] = '\0';  // drop trailing newline
+    cout << "LOG: (Time: " << timeStr << ") " << logMessage << endl;
+    // TODO: append that line to an actual log file
+}
+
 void doListResponse(int sock, const string &directory) {
     auto files = list(directory);
 
-    vector<json> jsonFiles;
+    vector<json> jsonFiles(files.size());
     for (auto f : files) {
         jsonFiles.push_back(f.getAsJSON(false));
     }
 
     json listResponsePacket;
     listResponsePacket["version"] = VERSION;
-    listResponsePacket["type"] = std::string("listResponse");
+    listResponsePacket["type"] = string("listResponse");
     listResponsePacket["response"] = jsonFiles;
     sendToSocket(sock, listResponsePacket);
 }
 
-void doPullResponse(int sock, const string &directory, const json &queryJ) {
-
+void doPullResponse(int sock, const string &directory, const json &pullRequest) {
+    debug("Received: " + pullRequest.stringify());
 }
+
+void doPushResponse(int sock, const string &directory, const json &pushRequest) {
+    debug("Received: " + pushRequest.stringify());
+}
+
 
 void handleClient(int sock, const string &directory) {
     auto query = receiveUntilByteEquals(sock, '\n');
-    auto queryJ = json(query);
+    try {
+        auto queryJ = json(query);  // will throw an exception if invalid JSON received
 
-    if (verifyJSONPacket(queryJ)) {
-        string type = queryJ["type"].getString();
+        if (verifyJSONPacket(queryJ)) {
+            string type = queryJ["type"].getString();
 
-        if (type == "list") {
-            doListResponse(sock, directory);
-        } else if (type == "pull") {
-            doPullResponse(sock, directory, queryJ);
-        } else if (type == "leave") {
-            close(sock);
-            return;
-        } else {
-            cout << "Unknown type: " << type << endl;
-            close(sock);
+            if (type == "listRequest") {
+                doListResponse(sock, directory);
+            } else if (type == "pullRequest") {
+                doPullResponse(sock, directory, queryJ);
+            } else if (type == "pushRequest") {
+                doPushResponse(sock, directory, queryJ);
+            } else if (type == "leave") {
+                close(sock);
+                return;
+            } else {
+                cout << "Unknown type: " << type << endl;
+                close(sock);
+            }
         }
-    }
 
-    // Loop
-    handleClient(sock, directory);
+        // Loop
+        handleClient(sock, directory);
+    } catch (std::exception& e) {
+        struct sockaddr_in clientSockaddr;
+        socklen_t addrLen = sizeof(clientSockaddr);
+        getpeername(sock, (sockaddr*) &clientSockaddr, &addrLen);
+        std::ostringstream stringStream;
+        stringStream << "Client at " << inet_ntoa(clientSockaddr.sin_addr) << ":";
+        stringStream << ((int) ntohs(clientSockaddr.sin_port)) << " unexpectedly closed connection";
+        log(stringStream.str());
+        return;
+    }
 }
 
 int main(int argc, char **argv) {
