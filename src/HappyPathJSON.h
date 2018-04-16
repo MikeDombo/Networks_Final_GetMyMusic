@@ -46,7 +46,7 @@ public:
                 return false;
             }
 
-            for (int i = 0; i < arrayEls.size(); i++) {
+            for (unsigned int i = 0; i < arrayEls.size(); i++) {
                 if (arrayEls[i] != rhs.arrayEls[i]) {
                     return false;
                 }
