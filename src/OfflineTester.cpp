@@ -25,6 +25,7 @@ void testBuildPushPull();
 
 json buildDiffStruct(const std::map< std::string, std::set<std::string> > &clientMap, const std::set<std::string> &clientFilenameSet, const std::map< std::string, std::set< std::string> > &serverMap, const std::set<std::string> &serverFilenameSet);  // defined in Project4Client.cpp. Requires that the main() method therein be commented out
 json buildPullRequestFromDiffStruct(json diffStruct);
+json buildPushRequestFromDiffStruct(json diffStruct);
 
 int main() {
   //testBase64Encoding();
@@ -160,18 +161,42 @@ void testBuildPushPullComplicated() {
   assert(false);
 }
 
-void testBuildPushPullOneFile() {
+void testBuildPushPullOneFileServer() {
+  cout << "  Case where there is only one file and it's on the server" << endl;
   json src = json("{\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"}]}");
-  json target = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[{\"filename\":\"a.txt\",\"checksum\":\"e8b7be43\"}]}");
-  json myresult = buildPullRequestFromDiffStruct(src);
-  cout << "    Target output: " << target.stringify() << endl;
-  cout << "    Actual output: " << myresult.stringify() << endl;
-  assert(myresult.stringify() == target.stringify());
+  json pullTarget = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[{\"filename\":\"a.txt\",\"checksum\":\"e8b7be43\"}]}");
+  json pullResult = buildPullRequestFromDiffStruct(src);
+  cout << "    Target output (pull): " << pullTarget.stringify() << endl;
+  cout << "    Actual output (pull): " << pullResult.stringify() << endl;
+  assert(pullResult.stringify() == pullTarget.stringify());
+  
+  json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[]}");
+  json pushResult = buildPushRequestFromDiffStruct(src);
+  cout << "    Target output (push): " << pushTarget.stringify() << endl;
+  cout << "    Actual output (push): " << pushResult.stringify() << endl;
+  assert(pushResult.stringify() == pushTarget.stringify());
+}
+
+void testBuildPushPullOneFileClient() {
+  cout << "  Case where there is only one file and it's on the client" << endl;
+  json src = json("{\"uniqueOnlyClient\":[{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"}]}");
+  json pullTarget = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[]}");
+  json pullResult = buildPullRequestFromDiffStruct(src);
+  cout << "    Target output (pull): " << pullTarget.stringify() << endl;
+  cout << "    Actual output (pull): " << pullResult.stringify() << endl;
+  assert(pullResult.stringify() == pullTarget.stringify());
+  
+  json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[{\"filename\":\"e.txt\",\"checksum\":\"b9866403\",\"data\":\"\"}]}");
+  json pushResult = buildPushRequestFromDiffStruct(src);
+  cout << "    Target output (push): " << pushTarget.stringify() << endl;
+  cout << "    Actual output (push): " << pushResult.stringify() << endl;
+  assert(pushResult.stringify() == pushTarget.stringify());
 }
 
 void testBuildPushPull() {
   cout << "Testing buildPullRequestFromDiffStruct() and buildPushRequestFromDiffStruct()" << endl;
-  testBuildPushPullOneFile();
+  testBuildPushPullOneFileServer();
+  testBuildPushPullOneFileClient();
   testBuildPushPullComplicated();
 }
   

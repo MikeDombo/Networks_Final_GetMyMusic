@@ -254,10 +254,28 @@ json getDiff(int sock) {
     return diffStruct;
 }
 
+json buildPushRequestFromDiffStruct(json diffStruct) {
+    json pushRequest;
+    pushRequest["version"] = VERSION;
+    pushRequest["type"] = JSON("pushRequest", true);
+    pushRequest["request"] = JSON("[]");
+    if (diffStruct.hasKey("uniqueOnlyClient")) {
+      for (auto file: diffStruct["uniqueOnlyClient"]) {
+        json pushDatum;
+        pushDatum["filename"] = file["filename"];
+        pushDatum["checksum"] = file["checksum"];
+        pushDatum["data"] = JSON("\"\"");
+        pushRequest["request"].push(pushDatum);
+      }
+    }
+    return pushRequest;
+}
+
 json buildPullRequestFromDiffStruct(json diffStruct) {
     json pullRequest;
     pullRequest["version"] = VERSION;
     pullRequest["type"] = JSON("pullRequest", true);
+    pullRequest["request"] = JSON("[]");
     if (diffStruct.hasKey("uniqueOnlyServer")) {
       for (auto file: diffStruct["uniqueOnlyServer"]) {
         pullRequest["request"].push(file);
