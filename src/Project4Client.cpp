@@ -1,9 +1,11 @@
 #include "Project4Common.h"
+#include <assert.h>
 
 using std::string;
 using std::vector;
 using std::ios;
 using std::stringstream;
+using std::ofstream;
 using std::cout;
 using std::endl;
 using std::cin;
@@ -81,9 +83,15 @@ void printListResponse(json answerJ) {
     }
 }
 
-json getListResponse(int sock) {
+json getResponse(int sock) {
     auto answer = receiveUntilByteEquals(sock, '\n');
     json answerJ = json(answer);
+    return answerJ;
+}
+
+json getListResponse(int sock) {
+    json answerJ = getResponse(sock);
+    assert(answerJ["type"].getString() == "listResponse");
     return answerJ;
 }
 
@@ -324,95 +332,58 @@ void handleGetDiff(int sock) {
     cout << endl;
 }
 
-/*
-void handleGetDiff(int sock) {
-    auto answerJ = getListResponse(sock);
-
-    if (verifyJSONPacket(answerJ)) {
-        cout << "Diff:" << endl
-             << "=====================" << endl;
-
-        auto serverFilesResponse = answerJ["response"]; //Format: [{filename: String, checksum: String}]
-        auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
-
-        // Map where keys represent checksum of files, and set contains corresponding filenames
-        // Assumes that multiple files, although differently named can contain the same contents
-        map<string, set<string>> serverMap;
-        map<string, set<string>> clientMap;
-
-        //Build map of server file checksum to set of filenames
-        for (auto file: serverFilesResponse) {
-            if (file.hasKey("checksum") && file.hasKey("filename")) {
-                string serverFileChecksum = file["checksum"].getString();
-                string serverFilename = file["filename"].getString();
-                set<string> serverFilenameSet;
-
-                //If the checksum isn't in the map, then create a new set and map checksum to set
-                if (serverMap.find(serverFileChecksum) == serverMap.end()) {
-                    serverFilenameSet.insert(serverFilename);
-                    serverMap[serverFileChecksum] = serverFilenameSet;
-                } else {
-                    serverFilenameSet = serverMap[serverFileChecksum];
-                    serverFilenameSet.insert(serverFilename);
-                }
-            }
-        }
-
-        //Prints files found on client but not on server and builds map of client file checksums and filenames
-        for (auto musicData: clientMusicDataList) {
-            string clientFilename = musicData.getFilename();
-            string clientFileChecksum = musicData.getChecksum();
-            set<string> clientFilenameSet;
-
-            //If checksum isn't present in server files, print out the client file name and checksum
-            if (serverMap.find(clientFileChecksum) == serverMap.end()) {
-                cout << "File found on client, but not on server -> " << clientFilename << ", " << clientFileChecksum
-                     << endl;
-            } else {
-                set<string> serverFilenameSet = serverMap[clientFileChecksum];
-                //Handle case where server contains same file contents as client file, but is named differently
-                if (serverFilenameSet.find(clientFilename) == serverFilenameSet.end()) {
-                    cout << "File found on server with same content as file on client, but differently named -> "
-                         << clientFilename << ", " << clientFileChecksum << endl;
-                }
-            }
-
-            //Build the client map
-            if (clientMap.find(clientFileChecksum) == clientMap.end()) {
-                clientFilenameSet.insert(clientFilename);
-                clientMap[clientFileChecksum] = clientFilenameSet;
-            } else {
-                clientFilenameSet = clientMap[clientFileChecksum];
-                clientFilenameSet.insert(clientFilename);
-            }
-        }
-
-        //Prints files found on server but not on client
-        for (auto file: serverFilesResponse) {
-            string serverFileChecksum = file["checksum"].getString();
-            string serverFilename = file["filename"].getString();
-
-            //If checksum isn't present in server files, print out the client file name and checksum
-            if (clientMap.find(serverFileChecksum) == clientMap.end()) {
-                cout << "Found on server, but not on client -> " << serverFilename << ", " << serverFileChecksum
-                     << endl;
-            } else {
-                set<string> clientFilenameSet = clientMap[serverFileChecksum];
-                //Handle case where client contains same file contents as server file, but is named differently
-                if (clientFilenameSet.find(serverFilename) == clientFilenameSet.end()) {
-                    cout << "File found on client with same content as file on server, but differently named ->"
-                         << serverFilename << ", " << serverFileChecksum << endl;
-                }
-            }
-        }
+bool isResponseComplete(json response, json request) {
+    int numRequested = 0;
+    int numReceived = 0;
+    for (auto f: request["request"]) {
+      ++numRequested;
     }
-
-    cout << endl;
+    for (auto f: response["response"]) {
+      ++numReceived;
+    }
+    return numRequested == numReceived;
 }
-*/
+
+bool handlePullResponse(json pullResponse, json pullRequest) {
+    for (auto fileDatum: pullResponse) {
+        auto dataIterable = base64Decode(fileDatum["data"].getString());
+        string data = string(dataIterable.begin(), dataIterable.end());
+        ofstream fileWriter(directory + fileDatum["filename"].getString());
+        fileWriter << data;
+        fileWriter.close();
+    }
+    return isResponseComplete(pullResponse, pullRequest);
+}
 
 void handleDoSync(int sock) {
-    sendListRequest(sock);
+    cout << "Sync:" << endl;
+    cout << "=====================" << endl;
+    auto diffStruct = getDiff(sock);
+    auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
+    debug("pullRequest: " + pullRequest.stringify());
+    auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+    debug("pushRequest: " + pushRequest.stringify());
+    for (auto iter = (pushRequest["request"]).begin(); iter != (pushRequest["request"]).end(); ++iter) {
+        debug(string("  Looking at file ").append(((*iter)["filename"]).getString()));
+        string path = directory + (((*iter)["filename"]).getString());
+        debug(string("    it has path ").append(path));
+        MusicData musicDatum(path);
+        auto jDatum = musicDatum.getAsJSON(true);
+        debug(string("    it has data ").append(jDatum["data"].getString()));
+        (*iter)["data"] = jDatum["data"];
+    }
+    debug("pushRequest (modified):" + pushRequest.stringify());
+    debug("sending pushRequest");
+    sendToSocket(sock, pushRequest);
+    json pushResponse = getResponse(sock);
+    
+    debug("sending pullRequest");
+    sendToSocket(sock, pullRequest);
+    json pullResponse = getResponse(sock);
+
+    if (not handlePullResponse(pullResponse, pullRequest) or not isResponseComplete(pushResponse, pushRequest)) {
+        cout << "Incomplete sync. Consider trying again." << endl;
+    }
 }
 
 void handleDoPull(int sock) {

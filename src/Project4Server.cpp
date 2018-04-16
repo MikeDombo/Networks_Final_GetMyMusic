@@ -37,9 +37,14 @@ void doListResponse(int sock, const string &directory) {
     sendToSocket(sock, listResponsePacket);
 }
 
-void doPullResponse(int sock, const string &directory, const json &queryJ) {
-
+void doPullResponse(int sock, const string &directory, const json &pullRequest) {
+    debug("Received: " + pullRequest.stringify());
 }
+
+void doPushResponse(int sock, const string &directory, const json &pushRequest) {
+    debug("Received: " + pushRequest.stringify());
+}
+
 
 void handleClient(int sock, const string &directory) {
     auto query = receiveUntilByteEquals(sock, '\n');
@@ -53,6 +58,8 @@ void handleClient(int sock, const string &directory) {
                 doListResponse(sock, directory);
             } else if (type == "pullRequest") {
                 doPullResponse(sock, directory, queryJ);
+            } else if (type == "pushRequest") {
+                doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
                 close(sock);
                 return;

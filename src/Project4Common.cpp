@@ -341,7 +341,7 @@ vector<char> base64Decode(const string &inputString) {
 
 // This is just so I can comment out all the debug statements at once
 void debug(const std::string &debugMessage) {
-    //std::cout << debugMessage << std::endl;
+    std::cout << debugMessage << std::endl;
 }
 
 string filenameIncrement(const string &filename, const set<string> &existingFilenames) {
