@@ -193,10 +193,27 @@ void testBuildPushPullOneFileClient() {
   assert(pushResult.stringify() == pushTarget.stringify());
 }
 
+void testBuildPushPullDuplicatesClient() {
+  cout << "  Case where a client has two copies of the same file" << endl;
+  json src = json("{\"duplicateOnlyClient\":[{\"checksum\":\"1234\",\"filenames\":[\"file5\",\"file6\"]}]}");
+  json pullTarget = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[]}");
+  json pullResult = buildPullRequestFromDiffStruct(src);
+  cout << "    Target output (pull): " << pullTarget.stringify() << endl;
+  cout << "    Actual output (pull): " << pullResult.stringify() << endl;
+  assert(pullResult.stringify() == pullTarget.stringify());
+
+  json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[{\"filename\":\"file5\",\"checksum\":\"1234\",\"data\":\"\"}]}");
+  json pushResult = buildPushRequestFromDiffStruct(src);
+  cout << "    Target output (push): " << pushTarget.stringify() << endl;
+  cout << "    Actual output (push): " << pushResult.stringify() << endl;
+  assert(pushResult.stringify() == pushTarget.stringify());
+}
+
 void testBuildPushPull() {
   cout << "Testing buildPullRequestFromDiffStruct() and buildPushRequestFromDiffStruct()" << endl;
   testBuildPushPullOneFileServer();
   testBuildPushPullOneFileClient();
+  testBuildPushPullDuplicatesClient();
   testBuildPushPullComplicated();
 }
   

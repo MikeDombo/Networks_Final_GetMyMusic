@@ -260,13 +260,22 @@ json buildPushRequestFromDiffStruct(json diffStruct) {
     pushRequest["type"] = JSON("pushRequest", true);
     pushRequest["request"] = JSON("[]");
     if (diffStruct.hasKey("uniqueOnlyClient")) {
-      for (auto file: diffStruct["uniqueOnlyClient"]) {
-        json pushDatum;
-        pushDatum["filename"] = file["filename"];
-        pushDatum["checksum"] = file["checksum"];
-        pushDatum["data"] = JSON("\"\"");
-        pushRequest["request"].push(pushDatum);
-      }
+        for (auto file: diffStruct["uniqueOnlyClient"]) {
+            json pushDatum;
+            pushDatum["filename"] = file["filename"];
+            pushDatum["checksum"] = file["checksum"];
+            pushDatum["data"] = JSON("\"\"");
+            pushRequest["request"].push(pushDatum);
+        }
+    }
+    if (diffStruct.hasKey("duplicateOnlyClient")) {
+        for (auto fileish: diffStruct["duplicateOnlyClient"]) {
+            json pushDatum;
+            pushDatum["filename"] = (fileish["filenames"])[0];
+            pushDatum["checksum"] = fileish["checksum"];
+            pushDatum["data"] = JSON("\"\"");
+            pushRequest["request"].push(pushDatum);
+        }
     }
     return pushRequest;
 }
