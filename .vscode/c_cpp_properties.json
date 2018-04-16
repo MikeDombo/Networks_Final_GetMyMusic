@@ -27,7 +27,7 @@
             "name": "Linux",
             "includePath": [
                 "/usr/include",
-				"/usr/local/include",
+                "/usr/local/include",
                 "${workspaceRoot}"
             ],
             "defines": [],
@@ -59,9 +59,11 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
-		},
-		{
+            },
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        },
+        {
             "name": "WSL",
             "intelliSenseMode": "clang-x64",
             "includePath": [

@@ -40,6 +40,25 @@ public:
 
     void operator=(const std::vector<JSON> &value);
 
+    bool operator==(const JSON &rhs) const {
+        return arrayEls == rhs.arrayEls &&
+               objectEls == rhs.objectEls &&
+               stringVal == rhs.stringVal &&
+               numberVal == rhs.numberVal &&
+               boolVal == rhs.boolVal &&
+               origString == rhs.origString &&
+               iObject == rhs.iObject &&
+               iBool == rhs.iBool &&
+               null == rhs.null &&
+               iArray == rhs.iArray &&
+               iString == rhs.iString &&
+               iNumber == rhs.iNumber;
+    }
+
+    bool operator!=(const JSON &rhs) const {
+        return !(rhs == *this);
+    }
+
     bool isObject() { return this->iObject; };
 
     bool isArray() { return this->iArray; };
