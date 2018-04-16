@@ -41,18 +41,42 @@ public:
     void operator=(const std::vector<JSON> &value);
 
     bool operator==(const JSON &rhs) const {
-        return arrayEls == rhs.arrayEls &&
-               objectEls == rhs.objectEls &&
-               stringVal == rhs.stringVal &&
-               numberVal == rhs.numberVal &&
-               boolVal == rhs.boolVal &&
-               origString == rhs.origString &&
-               iObject == rhs.iObject &&
-               iBool == rhs.iBool &&
-               null == rhs.null &&
-               iArray == rhs.iArray &&
-               iString == rhs.iString &&
-               iNumber == rhs.iNumber;
+        if (iArray && rhs.iArray) {
+            if (arrayEls.size() != rhs.arrayEls.size()) {
+                return false;
+            }
+
+            for (int i = 0; i < arrayEls.size(); i++) {
+                if (arrayEls[i] != rhs.arrayEls[i]) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (iObject && rhs.iObject) {
+            if (objectEls.size() != rhs.objectEls.size()) {
+                return false;
+            }
+            for (std::map<std::string, JSON>::const_iterator it = objectEls.begin();
+                 it != objectEls.end(); ++it) {
+                if (rhs.objectEls.find(it->first) == rhs.objectEls.end()) {
+                    return false;
+                }
+                if (rhs.objectEls.at(it->first) != it->second) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (iBool && rhs.iBool) {
+            return boolVal == rhs.boolVal;
+        } else if (null && rhs.null) {
+            return true;
+        } else if (iString && rhs.iString) {
+            return stringVal == rhs.stringVal;
+        } else if (iNumber && rhs.iNumber) {
+            return numberVal == rhs.numberVal;
+        }
+
+        return false;
     }
 
     bool operator!=(const JSON &rhs) const {
