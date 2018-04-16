@@ -21,7 +21,7 @@ void testBase64Encoding();
 void testBase64EncodingHappyString();
 void testFilenameIncrement();
 void testBuildDiffStruct();
-json buildDiffStruct(const std::map< std::string, std::set<std::string> > &clientMap, const std::set<std::string> &clientFilenameSet, const std::map< std::string, std::set< std::string> > &serverMap, const std::set<std::string> &serverFilenameSet);
+json buildDiffStruct(const std::map< std::string, std::set<std::string> > &clientMap, const std::set<std::string> &clientFilenameSet, const std::map< std::string, std::set< std::string> > &serverMap, const std::set<std::string> &serverFilenameSet);  // defined in Project4Client.cpp. Requires that the main() method therein be commented out
 
 int main() {
   //testBase64Encoding();
@@ -121,7 +121,33 @@ void testBuildDiffStructDuplicateBoth() {
   assert(myresult.stringify() == target.stringify());
 }
 
+void testBuildDiffStructConflict() {
+  cout << "  Case where a file exists on both client and server ";
+  cout << " and where different files on the client and server have the same name" << endl;
+  set<string> clientFilenameSet = set<string>{"b.txt", "b (1).txt", "c.txt", "e.txt"};
+  map< string, set<string> > clientFiles;
+  clientFiles["6b9df6f"] = set<string>{"c.txt"};
+  clientFiles["b9866403"] = set<string>{"e.txt"};
+  clientFiles["abcdef"] = set<string>{"b.txt"};
+  clientFiles["54321"] = set<string>{"b (1).txt"};
+
+
+  set<string> serverFilenameSet = set<string>{"a.txt", "b.txt", "c.txt"};
+  map< string, set<string> > serverFiles;
+  serverFiles["e8b7be43"] = set<string>{"a.txt"};
+  serverFiles["6b9df6f"] = set<string>{"c.txt"};
+  serverFiles["12345"] = set<string>{"b.txt"};
+  
+  json target = json("{\"duplicateBothClientServer\":[{\"checksum\":\"6b9df6f\",\"clientFilenames\":[\"c.txt\"],\"serverFilenames\":[\"c.txt\"]}],\"uniqueOnlyClient\":[{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"},{\"checksum\":\"abcdef\",\"filename\":\"b.txt\"},{\"checksum\":\"54321\",\"filename\":\"b (1).txt\"}],\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"},{\"checksum\":\"12345\",\"filename\":\"b.txt\"}],\"clientToServerConflicts\":[{\"clientFilename\":\"b.txt\",\"serverTargetFilename\":\"b (1).txt\"}],\"serverToClientConflicts\":[{\"serverFilename\":\"b.txt\",\"clientTargetFilename\":\"b (2).txt\"}]}");
+
+  json myresult = buildDiffStruct(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
+  cout << "    Target output: " << target.stringify() << endl;
+  cout << "    Actual output: " << myresult.stringify() << endl;
+  assert(myresult.stringify() == target.stringify());
+}
+
 void testBuildDiffStruct() {
   cout << "Testing buildDiffStruct()" << endl;
   testBuildDiffStructDuplicateBoth();
+  testBuildDiffStructConflict();
 }
