@@ -20,7 +20,6 @@ using std::map;
 void testBase64Encoding();
 void testBase64EncodingHappyString();
 void testFilenameIncrement();
-string filenameIncrement(const string &filename, const set<string> &existingFilenames);
 
 int main() {
   testFilenameIncrement();
@@ -88,8 +87,4 @@ void testFilenameIncrement() {
   cout << "  Check if a filename present with n increments gets an (n+1) before the ext." << endl;
   targetFname = filenameIncrement("file2.ext", existingFilenames);
   assert(targetFname == "file2 (3).ext");
-}
-
-string filenameIncrement(const string &filename, const set<string> &existingFilenames) {
-  return "";
 }

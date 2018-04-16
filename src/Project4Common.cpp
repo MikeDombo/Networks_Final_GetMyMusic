@@ -9,6 +9,7 @@ using std::stringstream;
 using std::ifstream;
 using std::istreambuf_iterator;
 using std::size_t;
+using std::set;
 
 InputParser::InputParser(int &argc, char **argv) {
     for (int i = 1; i < argc; ++i) {
@@ -340,4 +341,25 @@ vector<char> base64Decode(const string &inputString) {
 // This is just so I can comment out all the debug statements at once
 void debug(const std::string &debugMessage) {
     std::cout << debugMessage << std::endl;
+}
+
+string filenameIncrement(const string &filename, const set<string> &existingFilenames) {
+  if (existingFilenames.find(filename) != existingFilenames.end()) {
+    string res(filename);
+    size_t periodPos = filename.find_first_of('.');
+    if (periodPos != string::npos) {
+      int i = 1;
+      char c[2];
+      res.insert(periodPos, " (1)");
+      while (existingFilenames.find(res) != existingFilenames.end() && i > 0) {
+        snprintf(c, 2, "%d", ++i);
+        res[periodPos + 2] = c[0];
+      }
+    } else {
+      res.append(" (1)");
+    }
+    return res;
+  } else {
+    return filename;
+  }
 }
