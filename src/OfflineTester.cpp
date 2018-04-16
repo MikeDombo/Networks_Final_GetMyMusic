@@ -157,8 +157,20 @@ void testBuildDiffStruct() {
 }
 
 void testBuildPushPullComplicated() {
-  json src = json("{\"duplicateBothClientServer\":[{\"checksum\":\"6b9df6f\",\"clientFilenames\":[\"c.txt\"],\"serverFilenames\":[\"c.txt\"]}],\"uniqueOnlyClient\":[{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"},{\"checksum\":\"abcdef\",\"filename\":\"b.txt\"},{\"checksum\":\"54321\",\"filename\":\"b (1).txt\"}],\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"},{\"checksum\":\"12345\",\"filename\":\"b.txt\"}],\"clientToServerConflicts\":[{\"clientFilename\":\"b.txt\",\"serverTargetFilename\":\"b (1).txt\"}],\"serverToClientConflicts\":[{\"serverFilename\":\"b.txt\",\"clientTargetFilename\":\"b (2).txt\"}]}");
-  assert(false);
+  cout << "  Case where there are multiple instances of each category of file" << endl;
+  json src = json("{\"duplicateBothClientServer\":[{\"checksum\":\"6b9df6f\",\"clientFilenames\":[\"c.txt\"],\"serverFilenames\":[\"c.txt\"]}],\"uniqueOnlyClient\":[{\"checksum\":\"54321\",\"filename\":\"b (1).txt\"},{\"checksum\":\"abcdef\",\"filename\":\"b.txt\"},{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"}],\"uniqueOnlyServer\":[{\"checksum\":\"12345\",\"filename\":\"b.txt\"},{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"}],\"duplicateOnlyClient\":[{\"checksum\":\"122333\",\"filenames\":[\"d1\",\"d2\"]},{\"checksum\":\"1234\",\"filenames\":[\"d3\",\"d4\"]}],\"duplicateOnlyServer\":[{\"checksum\":\"333221\",\"filenames\":[\"d5\",\"d6\"]},{\"checksum\":\"4321\",\"filenames\":[\"d7\",\"d8\"]}]}");
+  
+  json pullTarget = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[{\"filename\":\"b.txt\",\"checksum\":\"12345\"},{\"filename\":\"a.txt\",\"checksum\":\"e8b7be43\"},{\"filename\":\"d5\",\"checksum\":\"333221\"},{\"filename\":\"d7\",\"checksum\":\"4321\"}]}");
+  json pullResult = buildPullRequestFromDiffStruct(src);
+  cout << "    Target output (pull): " << pullTarget.stringify() << endl;
+  cout << "    Actual output (pull): " << pullResult.stringify() << endl;
+  assert(pullResult == pullTarget);
+  
+  json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[{\"checksum\":\"54321\",\"filename\":\"b (1).txt\",\"data\":\"\"},{\"checksum\":\"abcdef\",\"filename\":\"b.txt\",\"data\":\"\"},{\"filename\":\"d1\",\"checksum\":\"122333\",\"data\":\"\"},{\"filename\":\"d3\",\"checksum\":\"1234\",\"data\":\"\"},{\"checksum\":\"b9866403\",\"filename\":\"e.txt\",\"data\":\"\"}]}");
+  json pushResult = buildPushRequestFromDiffStruct(src);
+  cout << "    Target output (push): " << pushTarget.stringify() << endl;
+  cout << "    Actual output (push): " << pushResult.stringify() << endl;
+  assert(pushResult == pushTarget);
 }
 
 void testBuildPushPullOneFileServer() {
