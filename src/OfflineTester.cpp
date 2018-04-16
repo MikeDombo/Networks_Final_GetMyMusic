@@ -21,13 +21,17 @@ void testBase64Encoding();
 void testBase64EncodingHappyString();
 void testFilenameIncrement();
 void testBuildDiffStruct();
+void testBuildPushPull();
+
 json buildDiffStruct(const std::map< std::string, std::set<std::string> > &clientMap, const std::set<std::string> &clientFilenameSet, const std::map< std::string, std::set< std::string> > &serverMap, const std::set<std::string> &serverFilenameSet);  // defined in Project4Client.cpp. Requires that the main() method therein be commented out
+json buildPullRequestFromDiffStruct(json diffStruct);
 
 int main() {
   //testBase64Encoding();
   //testBase64EncodingHappyString();
   //testFilenameIncrement();
-  testBuildDiffStruct();
+  //testBuildDiffStruct();
+  testBuildPushPull();
   return 0;
 }
 
@@ -131,7 +135,6 @@ void testBuildDiffStructConflict() {
   clientFiles["abcdef"] = set<string>{"b.txt"};
   clientFiles["54321"] = set<string>{"b (1).txt"};
 
-
   set<string> serverFilenameSet = set<string>{"a.txt", "b.txt", "c.txt"};
   map< string, set<string> > serverFiles;
   serverFiles["e8b7be43"] = set<string>{"a.txt"};
@@ -151,3 +154,24 @@ void testBuildDiffStruct() {
   testBuildDiffStructDuplicateBoth();
   testBuildDiffStructConflict();
 }
+
+void testBuildPushPullComplicated() {
+  json src = json("{\"duplicateBothClientServer\":[{\"checksum\":\"6b9df6f\",\"clientFilenames\":[\"c.txt\"],\"serverFilenames\":[\"c.txt\"]}],\"uniqueOnlyClient\":[{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"},{\"checksum\":\"abcdef\",\"filename\":\"b.txt\"},{\"checksum\":\"54321\",\"filename\":\"b (1).txt\"}],\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"},{\"checksum\":\"12345\",\"filename\":\"b.txt\"}],\"clientToServerConflicts\":[{\"clientFilename\":\"b.txt\",\"serverTargetFilename\":\"b (1).txt\"}],\"serverToClientConflicts\":[{\"serverFilename\":\"b.txt\",\"clientTargetFilename\":\"b (2).txt\"}]}");
+  assert(false);
+}
+
+void testBuildPushPullOneFile() {
+  json src = json("{\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"}]}");
+  json target = json("{\"version\":1,\"type\":\"pullRequest\",\"request\":[{\"filename\":\"a.txt\",\"checksum\":\"e8b7be43\"}]}");
+  json myresult = buildPullRequestFromDiffStruct(src);
+  cout << "    Target output: " << target.stringify() << endl;
+  cout << "    Actual output: " << myresult.stringify() << endl;
+  assert(myresult.stringify() == target.stringify());
+}
+
+void testBuildPushPull() {
+  cout << "Testing buildPullRequestFromDiffStruct() and buildPushRequestFromDiffStruct()" << endl;
+  testBuildPushPullOneFile();
+  testBuildPushPullComplicated();
+}
+  

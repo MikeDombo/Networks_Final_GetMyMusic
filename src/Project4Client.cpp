@@ -254,11 +254,17 @@ json getDiff(int sock) {
     return diffStruct;
 }
 
-/*
-json getPullRequestFromDiffStruct(json diffStruct) {
-    return nullptr;
+json buildPullRequestFromDiffStruct(json diffStruct) {
+    json pullRequest;
+    pullRequest["version"] = VERSION;
+    pullRequest["type"] = JSON("pullRequest", true);
+    if (diffStruct.hasKey("uniqueOnlyServer")) {
+      for (auto file: diffStruct["uniqueOnlyServer"]) {
+        pullRequest["request"].push(file);
+      }
+    }
+    return pullRequest;
 }
-*/
 
 void handleGetDiff(int sock) {
     auto answerJ = getListResponse(sock);
