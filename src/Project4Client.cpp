@@ -258,7 +258,9 @@ json buildPushRequestFromDiffStruct(json diffStruct) {
     json pushRequest;
     pushRequest["version"] = VERSION;
     pushRequest["type"] = JSON("pushRequest", true);
-    pushRequest["request"] = JSON("[]");
+    json emptyArr;
+    emptyArr.makeArray();
+    pushRequest["request"] = emptyArr;
     if (diffStruct.hasKey("uniqueOnlyClient")) {
         for (auto file: diffStruct["uniqueOnlyClient"]) {
             json pushDatum;
@@ -284,7 +286,9 @@ json buildPullRequestFromDiffStruct(json diffStruct) {
     json pullRequest;
     pullRequest["version"] = VERSION;
     pullRequest["type"] = JSON("pullRequest", true);
-    pullRequest["request"] = JSON("[]");
+    json emptyArr;
+    emptyArr.makeArray();
+    pullRequest["request"] = emptyArr;
     if (diffStruct.hasKey("uniqueOnlyServer")) {
       for (auto file: diffStruct["uniqueOnlyServer"]) {
         pullRequest["request"].push(file);

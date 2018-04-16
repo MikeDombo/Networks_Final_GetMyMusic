@@ -123,7 +123,7 @@ void testBuildDiffStructDuplicateBoth() {
   json myresult = buildDiffStruct(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
   cout << "    Target output: " << target.stringify() << endl;
   cout << "    Actual output: " << myresult.stringify() << endl;
-  assert(myresult.stringify() == target.stringify());
+  assert(myresult == target);
 }
 
 void testBuildDiffStructConflict() {
@@ -147,7 +147,7 @@ void testBuildDiffStructConflict() {
   json myresult = buildDiffStruct(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
   cout << "    Target output: " << target.stringify() << endl;
   cout << "    Actual output: " << myresult.stringify() << endl;
-  assert(myresult.stringify() == target.stringify());
+  assert(myresult == target);
 }
 
 void testBuildDiffStruct() {
@@ -168,13 +168,13 @@ void testBuildPushPullOneFileServer() {
   json pullResult = buildPullRequestFromDiffStruct(src);
   cout << "    Target output (pull): " << pullTarget.stringify() << endl;
   cout << "    Actual output (pull): " << pullResult.stringify() << endl;
-  assert(pullResult.stringify() == pullTarget.stringify());
+  assert(pullResult == pullTarget);
   
   json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[]}");
   json pushResult = buildPushRequestFromDiffStruct(src);
   cout << "    Target output (push): " << pushTarget.stringify() << endl;
   cout << "    Actual output (push): " << pushResult.stringify() << endl;
-  assert(pushResult.stringify() == pushTarget.stringify());
+  assert(pushResult == pushTarget);
 }
 
 void testBuildPushPullOneFileClient() {
@@ -184,13 +184,13 @@ void testBuildPushPullOneFileClient() {
   json pullResult = buildPullRequestFromDiffStruct(src);
   cout << "    Target output (pull): " << pullTarget.stringify() << endl;
   cout << "    Actual output (pull): " << pullResult.stringify() << endl;
-  assert(pullResult.stringify() == pullTarget.stringify());
+  assert(pullResult == pullTarget);
   
   json pushTarget = json("{\"version\":1,\"type\":\"pushRequest\",\"request\":[{\"filename\":\"e.txt\",\"checksum\":\"b9866403\",\"data\":\"\"}]}");
   json pushResult = buildPushRequestFromDiffStruct(src);
   cout << "    Target output (push): " << pushTarget.stringify() << endl;
   cout << "    Actual output (push): " << pushResult.stringify() << endl;
-  assert(pushResult.stringify() == pushTarget.stringify());
+  assert(pushResult == pushTarget);
 }
 
 void testBuildPushPullDuplicatesClient() {
@@ -206,7 +206,7 @@ void testBuildPushPullDuplicatesClient() {
   json pushResult = buildPushRequestFromDiffStruct(src);
   cout << "    Target output (push): " << pushTarget.stringify() << endl;
   cout << "    Actual output (push): " << pushResult.stringify() << endl;
-  assert(pushResult.stringify() == pushTarget.stringify());
+  assert(pushResult == pushTarget);
 }
 
 void testBuildPushPull() {
@@ -216,4 +216,3 @@ void testBuildPushPull() {
   testBuildPushPullDuplicatesClient();
   testBuildPushPullComplicated();
 }
-  
