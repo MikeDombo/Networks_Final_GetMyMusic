@@ -1,25 +1,28 @@
-# Project 4 -- Get My Music (GMM)
+# Project 4 — Get My Music (GMM)
+
 David Brakman, Michael Dombrowski, Shiv Toolsidass
 
 ## Protocol
+
 ### Trust
+
 The intended use of this software is to transfer files between hosts owned by the same individual. Therefore, all power and responsibility lies with the client, whose requests are trusted completely by the server.
 
 ### Operations
-1. List:  
-    - Spec:  
-        > Ask the server to return a list of files it currently has.
 
-    - Implementation:  
+1. List:
+    - Spec:
+        - Ask the server to return a list of files it currently has.
+
+    - Implementation:
         1. Client sends a `listRequest` message to the server.
         2. Client receives a `listResponse` message from the server.
         3. Client prints message contents to console.
 
 2. Diff:
-    - Spec:  
-        > The client should show a "diff" of the files it has in comparison to the server - both files the server has that the client does not have, and files the client has and the server does not have.
-
-        > "Diff" must actually crawl the directory structure and return all files in the current directory.
+    - Spec:
+        - The client should show a "diff" of the files it has in comparison to the server - both files the server has that the client does not have, and files the client has and the server does not have.
+        - "Diff" must actually crawl the directory structure and return all files in the current directory.
 
     - Notes:
         - The behavior of the Diff operation with regard to the following is unspecified:
@@ -46,11 +49,9 @@ The intended use of this software is to transfer files between hosts owned by th
 
 3. Sync:
     - Spec:
-        > Pulls to the local device all files from the server that the local device does not have and vice versa.
-
-        > Students must develop a means of robustly determining whether or not two files, even if named differently, contain the same content (without actually sending the entire file).
-
-        > The server must be multithreaded to handle multiple concurrent client requests (reads and writes).
+        - Pulls to the local device all files from the server that the local device does not have and vice versa.
+        - Students must develop a means of robustly determining whether or not two files, even if named differently, contain the same content (without actually sending the entire file).
+        - The server must be multithreaded to handle multiple concurrent client requests (reads and writes).
 
     - Notes:
         - We consider a machine to "have" a given file iff a file in the directory has the same contents as the given file, even if the filenames associated with instances of those contents are different.
@@ -73,22 +74,23 @@ The intended use of this software is to transfer files between hosts owned by th
             - For each `(filename, checksum)` pair in the `pullRequest`, if a file exists on the server with the same filename and checksum, add to a `pullResponse` a corresponding tuple of `(filename, checksum, data)`. After processing all files listed in the `pullRequest`, send the `pullResponse` to the client.
             - For each `(filename, checksum, data)` pair in the `pushRequest`, the file with the given filename will be (over)written with `data`. No checksums are inspected for a `pushRequest`, because the server must trust a `pushRequest` as authoritative. The only reason for a functioning client to send a `pushRequest` for a file whose checksum is already present on the server is in the rare case that different contents map to the same checksum and an advanced user is forcing an overwrite.
             The server then sends a `pushResponse` containing a list of `(filename, checksum)` tuples of every file in the request that was written to the server (which must be all of them).
-        4. Client receives a `pushResponse` and a `pullResponse`. If either response contains a shorter list of files than was sent in the corresponding request, print that the Sync failed. Otherwise, print to the console a list of filenames whose data was written to each host during the Sync.
+        6. Client receives a `pushResponse` and a `pullResponse`. If either response contains a shorter list of files than was sent in the corresponding request, print that the Sync failed. Otherwise, print to the console a list of filenames whose data was written to each host during the Sync.
 
 4. Leave:
     - Spec:
-        > The client should end its session with the server and take care of any open connections.
-
-        > The server must ... store/retrieve historical information about each client in a file.
+        - The client should end its session with the server and take care of any open connections.
+        - The server must ... store/retrieve historical information about each client in a file.
 
     - Implementation:
         1. Server receives a `leave` message from the client.
         2. Server closes the socket and appends "<Timestamp>: Client <IP> closed connection" to a log file.
 
 ### Messages
+
 Messages exchanged over the network will be strings adhering to a limited subset of JSON (RFC 7159). We chose this higher-level message format, instead of a more concise custom format like the one in the specification for Project 3, with the goal of simplifying development, a more pressing concern than minimizing bandwidth usage. Instead of using bit manipulation, we can use a map data structure to build and parse messages according to human-readable keys.
 
 All messages in our protocol will share a common envelope:
+
 ```JSON
 {
   "version": <Integer>,
@@ -96,21 +98,21 @@ All messages in our protocol will share a common envelope:
 }
 ```
 
-* Version: An integer *i* corresponding to the version of the message format being sent. If a message format breaks compatibility with existing implementations, its version number should be incremented so that communicating parties can recognize the issue and either adapt or abort. The development version articulated here is version 1.
+- Version: An integer *i* corresponding to the version of the message format being sent. If a message format breaks compatibility with existing implementations, its version number should be incremented so that communicating parties can recognize the issue and either adapt or abort. The development version articulated here is version 1.
 
-* Type: the type of the message being sent, identified by one of the following strings: "listRequest", "listResponse", "pullRequest", "pullResponse", or "leave". This type info informs the recipient what key-value pairs can be expected in the rest of the message.  
-Notably, there are no "sync" or "diff" messages as these are entirely client-side.
-  - **listRequest:** no additional information.   
+- Type: the type of the message being sent, identified by one of the following strings: "listRequest", "listResponse", "pullRequest", "pullResponse", or "leave". This type info informs the recipient what key-value pairs can be expected in the rest of the message. Notably, there are no "sync" or "diff" messages as these are entirely client-side.
+
+  - **listRequest:** no additional information.
   Example:
-    ```
+    ```JSON
     {
       "version": 1,
       "type": "listRequest",
     }
     ```
-  - **listResponse:** response info consisting of a list of (filename, checksum) tuples.  
+  - **listResponse:** response info consisting of a list of (filename, checksum) tuples.
   Example:
-    ```
+    ```JSON
     {
       "version": 1,
       "type": "listResponse",
@@ -126,9 +128,9 @@ Notably, there are no "sync" or "diff" messages as these are entirely client-sid
       ]
     }
     ```
-  - **pullRequest:** request info consisting of a list of (filename, checksum) tuples.  
+  - **pullRequest:** request info consisting of a list of (filename, checksum) tuples.
   Example:
-    ```
+    ```JSON
     {
       "version": 1,
       "type": "pullRequest",
@@ -146,8 +148,8 @@ Notably, there are no "sync" or "diff" messages as these are entirely client-sid
     ```
 
   - **pullResponse:** response info consisting of a list of (filename, checksum, data) tuples. To be sent as a string, file data will be encoded in base64. If a pullRequest includes invalid (filename, checksum) pairs that do not exist on the server, the pullResponse will send only the files corresponding to valid (filename, checksum) pairs.
-  Example:  
-    ```
+  Example:
+    ```JSON
     {
       "version": 1,
       "type": "pullResponse",
@@ -166,9 +168,9 @@ Notably, there are no "sync" or "diff" messages as these are entirely client-sid
     }
     ```
 
-  - **pushRequest:** request info consisting of a list of (filename, checksum, data) tuples. To be sent as a string, file data will be encoded in base64.  
+  - **pushRequest:** request info consisting of a list of (filename, checksum, data) tuples. To be sent as a string, file data will be encoded in base64.
   Example:
-    ```
+    ```JSON
     {
       "version": 1,
       "type": "pushRequest",
@@ -187,9 +189,9 @@ Notably, there are no "sync" or "diff" messages as these are entirely client-sid
     }
     ```
 
-  - **pushResponse:** response info consisting of a list of (filename, checksum) pairs of the files written to the server in response to a given `pushRequest`.  
+  - **pushResponse:** response info consisting of a list of (filename, checksum) pairs of the files written to the server in response to a given `pushRequest`.
   Example:
-    ```
+    ```JSON
     {
       "version": 1,
       "type": "pushResponse",
@@ -206,16 +208,14 @@ Notably, there are no "sync" or "diff" messages as these are entirely client-sid
     }
     ```
 
-  - **leave:** no additional information.  
-  Example:  
-    ```
+  - **leave:** no additional information.
+  Example:
+    ```JSON
     {
       "version": 1,
       "type": "leave",
     }
     ```
-
-
 
 ## Client
 
