@@ -99,8 +99,8 @@ json setToJsonList(const set<string> &values) {
     vector<string> sortedVals(values.begin(), values.end());
     std::sort(sortedVals.begin(), sortedVals.end());
     json jList;
-    for (vector<string>::iterator iter = sortedVals.begin(); iter != sortedVals.end(); ++iter) {
-        jList.push(JSON(*iter, true));
+    for(auto iter : sortedVals){
+        jList.push(JSON(iter, true));
     }
     return jList;
 }
@@ -360,14 +360,14 @@ void handleDoSync(int sock) {
     debug("pullRequest: " + pullRequest.stringify());
     auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
     debug("pushRequest: " + pushRequest.stringify());
-    for (auto iter = (pushRequest["request"]).begin(); iter != (pushRequest["request"]).end(); ++iter) {
-        debug(string("  Looking at file ").append(((*iter)["filename"]).getString()));
-        string path = directory + (((*iter)["filename"]).getString());
+    for(auto iter : pushRequest["request"]){
+        debug(string("  Looking at file ").append((iter["filename"]).getString()));
+        string path = directory + ((iter["filename"]).getString());
         debug(string("    it has path ").append(path));
         MusicData musicDatum(path);
         auto jDatum = musicDatum.getAsJSON(true);
         debug(string("    it has data ").append(jDatum["data"].getString()));
-        (*iter)["data"] = jDatum["data"];
+        iter["data"] = jDatum["data"];
     }
     debug("pushRequest (modified):" + pushRequest.stringify());
     debug("sending pushRequest");
