@@ -99,7 +99,7 @@ json setToJsonList(const set<string> &values) {
     vector<string> sortedVals(values.begin(), values.end());
     std::sort(sortedVals.begin(), sortedVals.end());
     json jList;
-    for(auto iter : sortedVals){
+    for (auto iter : sortedVals) {
         jList.push(JSON(iter, true));
     }
     return jList;
@@ -137,7 +137,7 @@ json buildDiffStruct(const map<string, set<string> > &clientMap, const set<strin
             json duplB;
             duplB["checksum"] = JSON(cCsum, true);
             duplB["clientFilenames"] = setToJsonList(cFnames);
-            tmpFnames = (serverMap.find(cCsum))->second;  // can't use [] access b/c serverMap is const
+            tmpFnames = serverMap.at(cCsum);
             duplB["serverFilenames"] = setToJsonList(tmpFnames);
             diffStruct["duplicateBothClientServer"].push(duplB);
         } else if (cFnames.size() > 1) {
@@ -360,7 +360,7 @@ void handleDoSync(int sock) {
     debug("pullRequest: " + pullRequest.stringify());
     auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
     debug("pushRequest: " + pushRequest.stringify());
-    for(auto iter : pushRequest["request"]){
+    for (auto iter : pushRequest["request"]) {
         debug(string("  Looking at file ").append((iter["filename"]).getString()));
         string path = directory + ((iter["filename"]).getString());
         debug(string("    it has path ").append(path));
