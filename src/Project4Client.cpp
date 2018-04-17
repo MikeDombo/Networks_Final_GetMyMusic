@@ -328,7 +328,7 @@ void handleGetDiff(int sock) {
     cout << endl;
 }
 
-bool isResponseComplete(const json& response, json request) {
+bool isResponseComplete(const json &response, json request) {
     int numRequested = 0;
     int numReceived = 0;
     for (auto f: request["request"]) {
@@ -340,7 +340,7 @@ bool isResponseComplete(const json& response, json request) {
     return numRequested == numReceived;
 }
 
-bool handlePullResponse(const json& pullResponse, const json& pullRequest) {
+bool handlePullResponse(const json &pullResponse, const json &pullRequest) {
     for (auto fileDatum: pullResponse) {
         auto dataIterable = base64Decode(fileDatum["data"].getString());
         string data = string(dataIterable.begin(), dataIterable.end());

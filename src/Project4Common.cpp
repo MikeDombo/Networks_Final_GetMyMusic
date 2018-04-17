@@ -63,7 +63,7 @@ string MusicData::getFilename() {
     return this->filename;
 }
 
-string MusicData::getChecksum(){
+string MusicData::getChecksum() {
     return this->checksum;
 }
 
@@ -214,7 +214,7 @@ bool verifyJSONPacket(json &data) {
                && data.hasKey("type") && data["version"].getNumber() == VERSION
                && data["type"].isString();
 
-    if(!verified){
+    if (!verified) {
         return false;
     }
 
@@ -225,11 +225,11 @@ bool verifyJSONPacket(json &data) {
     }
     if (type == "listResponse") {
         return verified && data.hasKey("response")
-                   && data["response"].isArray();
+               && data["response"].isArray();
     }
     if (type == "pullRequest") {
         return verified && data.hasKey("request")
-                   && data["request"].isArray();
+               && data["request"].isArray();
     }
     if (type == "pullResponse") {
         return verified && data.hasKey("response")
@@ -249,94 +249,94 @@ bool verifyJSONPacket(json &data) {
 
     return false;
 }
-  
+
 // base64 uses an 8-bit character to store 6 "raw" bits. 
 // These sync up at the least common multiple, 24 bits (every 3 bytes of input)
 // Ensure a contiguous representation for bit manipulation
 struct fourchar {
-  char padding;
-  char char1;
-  char char2;
-  char char3;
+    char padding;
+    char char1;
+    char char2;
+    char char3;
 };
 union Bitboi {
-  fourchar f;
-  uint32_t i;
+    fourchar f;
+    uint32_t i;
 };
 
 
 string base64Encode(const std::vector<char> &inputBuffer) {
-  stringstream output;
-  uint8_t index;
-  Bitboi b;
+    stringstream output;
+    uint8_t index;
+    Bitboi b;
 
-  for (size_t i = 0; i+2 < inputBuffer.size(); i += 3) {
-    // extract 3 bytes from the vector
-    b.f.padding = (char) 0x00;
-    b.f.char1 = inputBuffer[i];
-    b.f.char2 = inputBuffer[i+1];
-    b.f.char3 = inputBuffer[i+2];
-    b.i = htonl(b.i);
-    
-    index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
-    output << BASE64_CHARS[index];
-    index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
-    output << BASE64_CHARS[index];
-    index = static_cast<uint8_t>((b.i & 0x00000FC0) >> 6);
-    output << BASE64_CHARS[index];
-    index = static_cast<uint8_t>((b.i & 0x0000003F) >> 0);
-    output << BASE64_CHARS[index];
-  }
+    for (size_t i = 0; i + 2 < inputBuffer.size(); i += 3) {
+        // extract 3 bytes from the vector
+        b.f.padding = (char) 0x00;
+        b.f.char1 = inputBuffer[i];
+        b.f.char2 = inputBuffer[i + 1];
+        b.f.char3 = inputBuffer[i + 2];
+        b.i = htonl(b.i);
 
-  // Get the remaining 1 or 2 bytes
-  memset(&b, 0, 3);
-  switch (inputBuffer.size() % 3) {
-    case 1:
-      b.f.char1 = inputBuffer[inputBuffer.size() - 1];
-      b.i = htonl(*((uint32_t*) &b));
-      index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
-      output << BASE64_CHARS[index];
-      index = static_cast<uint8_t>((b.i & 0x00030000) >> 12);
-      output << BASE64_CHARS[index];
-      output << BASE64_PAD_CHAR;
-      output << BASE64_PAD_CHAR;
-      break;
-    case 2:
-      b.f.char1 = inputBuffer[inputBuffer.size() - 2];
-      b.f.char2 = inputBuffer[inputBuffer.size() - 1];
-      b.i = htonl(*((uint32_t*) &b));
-      index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
-      output << BASE64_CHARS[index];
-      index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
-      output << BASE64_CHARS[index];
-      index = static_cast<uint8_t>((b.i & 0x00000F00) >> 6);
-      output << BASE64_CHARS[index];
-      output << BASE64_PAD_CHAR;
-      break;
-    default:
-      break;
-  }
-  return output.str();
+        index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
+        output << BASE64_CHARS[index];
+        index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
+        output << BASE64_CHARS[index];
+        index = static_cast<uint8_t>((b.i & 0x00000FC0) >> 6);
+        output << BASE64_CHARS[index];
+        index = static_cast<uint8_t>((b.i & 0x0000003F) >> 0);
+        output << BASE64_CHARS[index];
+    }
+
+    // Get the remaining 1 or 2 bytes
+    memset(&b, 0, 3);
+    switch (inputBuffer.size() % 3) {
+        case 1:
+            b.f.char1 = inputBuffer[inputBuffer.size() - 1];
+            b.i = htonl(*((uint32_t *) &b));
+            index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
+            output << BASE64_CHARS[index];
+            index = static_cast<uint8_t>((b.i & 0x00030000) >> 12);
+            output << BASE64_CHARS[index];
+            output << BASE64_PAD_CHAR;
+            output << BASE64_PAD_CHAR;
+            break;
+        case 2:
+            b.f.char1 = inputBuffer[inputBuffer.size() - 2];
+            b.f.char2 = inputBuffer[inputBuffer.size() - 1];
+            b.i = htonl(*((uint32_t *) &b));
+            index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
+            output << BASE64_CHARS[index];
+            index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
+            output << BASE64_CHARS[index];
+            index = static_cast<uint8_t>((b.i & 0x00000F00) >> 6);
+            output << BASE64_CHARS[index];
+            output << BASE64_PAD_CHAR;
+            break;
+        default:
+            break;
+    }
+    return output.str();
 }
 
 vector<char> base64Decode(const string &inputString) {
-  Bitboi b;
-  vector<char> result;
-  // TODO: initialize allocation to (3*((inputString.size() + 3)/4) chars
-  for (size_t i = 0; i+3 < inputString.size(); i += 4) {
-    memset(&b, 0, 4);
-    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+0])] << 18;
-    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+1])] << 12;
-    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+2])] <<  6;
-    b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i+3])];
-    b.i = ntohl(b.i);
-    result.emplace_back(b.f.char1);
-    if (b.f.char2 != '\0')
-      result.emplace_back(b.f.char2);
-    if (b.f.char3 != '\0')
-      result.emplace_back(b.f.char3);
-  }
-  return result;
+    Bitboi b;
+    vector<char> result;
+    // TODO: initialize allocation to (3*((inputString.size() + 3)/4) chars
+    for (size_t i = 0; i + 3 < inputString.size(); i += 4) {
+        memset(&b, 0, 4);
+        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 0])] << 18;
+        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 1])] << 12;
+        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 2])] << 6;
+        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 3])];
+        b.i = ntohl(b.i);
+        result.emplace_back(b.f.char1);
+        if (b.f.char2 != '\0')
+            result.emplace_back(b.f.char2);
+        if (b.f.char3 != '\0')
+            result.emplace_back(b.f.char3);
+    }
+    return result;
 }
 
 // This is just so I can comment out all the debug statements at once
@@ -345,22 +345,22 @@ void debug(const std::string &debugMessage) {
 }
 
 string filenameIncrement(const string &filename, const set<string> &existingFilenames) {
-  if (existingFilenames.find(filename) != existingFilenames.end()) {
-    string res(filename);
-    size_t periodPos = filename.find_first_of('.');
-    if (periodPos != string::npos) {
-      int i = 1;
-      char c[2];
-      res.insert(periodPos, " (1)");
-      while (existingFilenames.find(res) != existingFilenames.end() && i > 0) {
-        snprintf(c, 2, "%d", ++i);
-        res[periodPos + 2] = c[0];
-      }
+    if (existingFilenames.find(filename) != existingFilenames.end()) {
+        string res(filename);
+        size_t periodPos = filename.find_first_of('.');
+        if (periodPos != string::npos) {
+            int i = 1;
+            char c[2];
+            res.insert(periodPos, " (1)");
+            while (existingFilenames.find(res) != existingFilenames.end() && i > 0) {
+                snprintf(c, 2, "%d", ++i);
+                res[periodPos + 2] = c[0];
+            }
+        } else {
+            res.append(" (1)");
+        }
+        return res;
     } else {
-      res.append(" (1)");
+        return filename;
     }
-    return res;
-  } else {
-    return filename;
-  }
 }
