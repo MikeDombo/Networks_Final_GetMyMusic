@@ -41,19 +41,19 @@ JSON::JSON(const std::string &j, bool plainString) {
     }
 };
 
-bool JSON::hasKey(const std::string &k) {
+bool JSON::hasKey(const std::string &k) const {
     if (this->iArray) {
         return false;
     }
     return this->objectEls.find(k) != this->objectEls.end();
 };
 
-JSON &JSON::operator[](int i) {
+JSON &JSON::operator[](unsigned int i) {
     if (i < 0) {
         throw std::out_of_range("Index is out of range");
     }
     if (this->iArray) {
-        if ((unsigned int) i >= this->arrayEls.size()) {
+        if (i >= this->arrayEls.size()) {
             throw std::out_of_range("Index is out of range");
         }
         return this->arrayEls.at(i);
@@ -66,7 +66,7 @@ JSON &JSON::operator[](const std::string &s) {
         this->makeObject();
     }
     if (!this->iObject && JSON::isNumeric(s)) {
-        return this->operator[](std::stoi(s));
+        return this->operator[]((unsigned int) std::stoi(s));
     }
     if (this->iObject) {
         if (!this->hasKey(s)) {
@@ -75,6 +75,29 @@ JSON &JSON::operator[](const std::string &s) {
         return this->objectEls.at(s);
     }
     throw std::domain_error("Cannot access the string key on a JSON non-object");
+};
+
+const JSON &JSON::operator[](unsigned int i) const {
+    if (i < 0) {
+        throw std::out_of_range("Index is out of range");
+    }
+    if (this->iArray) {
+        if (i >= this->arrayEls.size()) {
+            throw std::out_of_range("Index is out of range");
+        }
+        return this->arrayEls.at(i);
+    }
+    throw std::domain_error("Cannot access the numeric index of JSON non-array");
+};
+
+const JSON &JSON::operator[](const std::string &s) const {
+    if (!this->iObject && JSON::isNumeric(s)) {
+        return this->operator[]((unsigned int) std::stoi(s));
+    }
+    if (this->iObject && this->hasKey(s)) {
+        return this->objectEls.at(s);
+    }
+    throw std::domain_error("Cannot access the string key on a JSON non-object or key doesn't exist");
 };
 
 bool JSON::isNumeric(const std::string &s) {
@@ -131,29 +154,25 @@ void JSON::operator=(const std::vector<JSON> &value) {
     this->arrayEls.insert(std::end(this->arrayEls), std::begin(value), std::end(value));
 }
 
-std::string JSON::getString() {
+std::string JSON::getString() const {
     if (this->iString) {
         return this->stringVal;
     }
     return nullptr;
 }
 
-double JSON::getNumber() {
+double JSON::getNumber() const {
     if (this->iNumber) {
         return this->numberVal;
     }
     return 0;
 }
 
-bool JSON::getBool() {
+bool JSON::getBool() const {
     if (this->iBool) {
         return this->boolVal;
     }
     return false;
-}
-
-bool JSON::isBlank() {
-    return !(this->iArray || this->iObject || this->iNumber || this->iString || this->null || this->iBool);
 }
 
 std::string JSON::stringify() const {
@@ -240,7 +259,7 @@ void JSON::unshift(const JSON &j) {
     }
 }
 
-unsigned long JSON::getLength() {
+unsigned long JSON::getLength() const {
     if (this->iArray) {
         return this->arrayEls.size();
     }
@@ -284,7 +303,7 @@ void JSON::parse() {
                         this->stringVal += '\\';
                         this->stringVal += c;
                     } else {
-                        this->stringVal = doUnescape(this->stringVal, c);
+                        this->stringVal = JSON::doUnescape(this->stringVal, c);
                     }
 
                     isEscaping = false;
@@ -310,7 +329,7 @@ void JSON::parse() {
     }
 };
 
-std::string JSON::getStringWithUnicode() {
+std::string JSON::getStringWithUnicode() const {
     if (!this->iString) {
         return nullptr;
     }
@@ -332,7 +351,7 @@ std::string JSON::getStringWithUnicode() {
                 newString += '\\';
                 newString += c;
             } else {
-                newString = doUnescape(newString, c);
+                newString = JSON::doUnescape(newString, c);
             }
 
             isEscaping = false;
@@ -582,14 +601,14 @@ void JSON::parseObject() {
     }
 };
 
-std::vector<JSON>::iterator JSON::begin() {
+std::vector<JSON>::const_iterator JSON::begin() const {
     if (this->iArray) {
         return this->arrayEls.begin();
     }
     return this->arrayEls.end();;
 }
 
-std::vector<JSON>::iterator JSON::end() {
+std::vector<JSON>::const_iterator JSON::end() const {
     if (this->iArray) {
         return this->arrayEls.end();
     }

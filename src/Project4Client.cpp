@@ -249,7 +249,7 @@ json getDiff(int sock, json answerJ) {
     return diffStruct;
 }
 
-json buildPushRequestFromDiffStruct(json diffStruct) {
+json buildPushRequestFromDiffStruct(const json &diffStruct) {
     json pushRequest;
     pushRequest["version"] = VERSION;
     pushRequest["type"] = JSON("pushRequest", true);
@@ -277,7 +277,7 @@ json buildPushRequestFromDiffStruct(json diffStruct) {
     return pushRequest;
 }
 
-json buildPullRequestFromDiffStruct(json diffStruct) {
+json buildPullRequestFromDiffStruct(const json &diffStruct) {
     json pullRequest;
     pullRequest["version"] = VERSION;
     pullRequest["type"] = JSON("pullRequest", true);
@@ -328,7 +328,7 @@ void handleGetDiff(int sock) {
     cout << endl;
 }
 
-bool isResponseComplete(json response, json request) {
+bool isResponseComplete(const json& response, json request) {
     int numRequested = 0;
     int numReceived = 0;
     for (auto f: request["request"]) {
@@ -340,7 +340,7 @@ bool isResponseComplete(json response, json request) {
     return numRequested == numReceived;
 }
 
-bool handlePullResponse(json pullResponse, json pullRequest) {
+bool handlePullResponse(const json& pullResponse, const json& pullRequest) {
     for (auto fileDatum: pullResponse) {
         auto dataIterable = base64Decode(fileDatum["data"].getString());
         string data = string(dataIterable.begin(), dataIterable.end());
