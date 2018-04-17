@@ -201,11 +201,9 @@ json getDiff(int sock, json answerJ) {
      *  return a json struct of that for further use
      */
     debug(string("In getDiff(").append(std::to_string(sock)).append(")."));
-    map<string, set<string>> serverMap;
     map<string, set<string>> clientMap;
-    set<string> serverFilenameSet = set<string>();
     set<string> clientFilenameSet = set<string>();
-    auto clientMusicDataList = list(directory);     //Format: vector<MusicData>
+    auto clientMusicDataList = list(directory);
 
     // populate clientMap and clientFilenameSet
     for (auto musicDatum: clientMusicDataList) {
@@ -223,13 +221,15 @@ json getDiff(int sock, json answerJ) {
         }
     }
 
-    auto serverFilesResponse = answerJ["response"];         //Format: [{filename: String, checksum: String}]
+    map<string, set<string>> serverMap;
+    set<string> serverFilenameSet = set<string>();
 
+    auto serverFilesResponse = answerJ["response"];         //Format: [{filename: String, checksum: String}]
     // populate serverMap and serverFilenameSet
     for (auto file: serverFilesResponse) {
         if (file.hasKey("checksum") && file.hasKey("filename")) {
-            string sCsum = file["checksum"].getString();
             string sFname = file["filename"].getString();
+            string sCsum = file["checksum"].getString();
             serverFilenameSet.insert(sFname); // add filename (guaranteed unique locally) to set
             debug(string("  Looking at server file ").append(sFname).append(" with checksum ").append(sCsum));
 
