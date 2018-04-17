@@ -128,7 +128,7 @@ void JSON::operator=(double i) {
         parse();
     } else if (this->iNumber) {
         this->numberVal = i;
-    } else if (this->isBlank()){
+    } else if (this->isBlank()) {
         this->numberVal = i;
         this->iNumber = true;
     }
@@ -137,7 +137,7 @@ void JSON::operator=(double i) {
 void JSON::operator=(bool b) {
     if (this->iBool) {
         this->boolVal = b;
-    } else if (this->isBlank()){
+    } else if (this->isBlank()) {
         this->boolVal = b;
         this->iBool = true;
     }
@@ -366,7 +366,7 @@ std::string JSON::getStringWithUnicode() const {
 
                 // Remove unicode codepoint and insert unicode character
                 std::string possibleUnicode = this->convertToUnicode(unicodeHex);
-                if(possibleUnicode == unicodeHex){
+                if (possibleUnicode == unicodeHex) {
                     possibleUnicode = std::string("\\u") + possibleUnicode;
                 }
                 newString = newString.substr(0, newString.size() - 6) + possibleUnicode;
@@ -480,7 +480,7 @@ void JSON::parseArray() {
                 this->arrayEls.push_back(JSON(singleElement));
             }
             singleElement = std::string();
-        } else if(quotes || !isspace(c)){
+        } else if (quotes || !isspace(c)) {
             singleElement += c;
         }
 
