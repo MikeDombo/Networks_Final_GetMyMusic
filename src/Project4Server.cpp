@@ -16,7 +16,7 @@ void printHelp(char **argv) {
 
 void log(const std::string &logMessage) {
     std::time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    char* timeStr = std::ctime(&currentTime);
+    char *timeStr = std::ctime(&currentTime);
     timeStr[strlen(timeStr) - 1] = '\0';  // drop trailing newline
     cout << "LOG: (Time: " << timeStr << ") " << logMessage << endl;
     // TODO: append that line to an actual log file
@@ -71,10 +71,10 @@ void handleClient(int sock, const string &directory) {
 
         // Loop
         handleClient(sock, directory);
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
         struct sockaddr_in clientSockaddr;
         socklen_t addrLen = sizeof(clientSockaddr);
-        getpeername(sock, (sockaddr*) &clientSockaddr, &addrLen);
+        getpeername(sock, (sockaddr *) &clientSockaddr, &addrLen);
         std::ostringstream stringStream;
         stringStream << "Client at " << inet_ntoa(clientSockaddr.sin_addr) << ":";
         stringStream << ((int) ntohs(clientSockaddr.sin_port)) << " unexpectedly closed connection";
