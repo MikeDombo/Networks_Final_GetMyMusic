@@ -308,18 +308,22 @@ void handleGetDiff(int sock) {
         cout << "Unable to verify listResponse from server!" << endl;
         return;
     }
+
     auto diffStruct = getDiff(sock, answerJ);
     auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
-    debug("pullRequest: " + pullRequest.stringify());
     auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+
+    debug("pullRequest: " + pullRequest.stringify());
     debug("pushRequest: " + pushRequest.stringify());
-    cout << "  On Server but not on Client:" << endl;
+
+    cout << "On Server but not on Client:" << endl;
     for (auto file: pullRequest["request"]) {
-        cout << "    + " << file["filename"].getString() << endl;
+        cout << "\t+ " << file["filename"].getString() << endl;
     }
-    cout << "  On Client but not on Server:" << endl;
+
+    cout << "On Client but not on Server:" << endl;
     for (auto fileish: pushRequest["request"]) {
-        cout << "    + " << fileish["filename"].getString() << endl;
+        cout << "\t+ " << fileish["filename"].getString() << endl;
     }
     cout << endl;
 }
@@ -350,16 +354,20 @@ bool handlePullResponse(json pullResponse, json pullRequest) {
 void handleDoSync(int sock) {
     cout << "Sync:" << endl;
     cout << "=====================" << endl;
+
     auto answerJ = getListResponse(sock);
     if (!verifyJSONPacket(answerJ)) {
         cout << "Unable to verify listResponse from server!" << endl;
         return;
     }
+
     auto diffStruct = getDiff(sock, answerJ);
     auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
-    debug("pullRequest: " + pullRequest.stringify());
     auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+
+    debug("pullRequest: " + pullRequest.stringify());
     debug("pushRequest: " + pushRequest.stringify());
+
     for (auto iter : pushRequest["request"]) {
         debug(string("  Looking at file ").append((iter["filename"]).getString()));
         string path = directory + ((iter["filename"]).getString());
@@ -369,8 +377,10 @@ void handleDoSync(int sock) {
         debug(string("    it has data ").append(jDatum["data"].getString()));
         iter["data"] = jDatum["data"];
     }
+
     debug("pushRequest (modified):" + pushRequest.stringify());
     debug("sending pushRequest");
+
     sendToSocket(sock, pushRequest);
     json pushResponse = getResponse(sock);
 
@@ -378,7 +388,7 @@ void handleDoSync(int sock) {
     sendToSocket(sock, pullRequest);
     json pullResponse = getResponse(sock);
 
-    if (not handlePullResponse(pullResponse, pullRequest) or not isResponseComplete(pushResponse, pushRequest)) {
+    if (!handlePullResponse(pullResponse, pullRequest) || !isResponseComplete(pushResponse, pushRequest)) {
         cout << "Incomplete sync. Consider trying again." << endl;
     }
 }
