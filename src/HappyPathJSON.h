@@ -24,11 +24,15 @@ public:
 
     JSON(const std::string &j, bool plainString);
 
-    bool hasKey(const std::string &k);
+    bool hasKey(const std::string &k) const;
 
-    JSON &operator[](int i);
+    JSON &operator[](unsigned int i);
 
     JSON &operator[](const std::string &s);
+
+    const JSON &operator[](unsigned int i) const;
+
+    const JSON &operator[](const std::string &s) const;
 
     void operator=(const JSON &j);
 
@@ -83,19 +87,21 @@ public:
         return !(rhs == *this);
     }
 
-    bool isObject() { return this->iObject; };
+    bool isObject() const { return this->iObject; };
 
-    bool isArray() { return this->iArray; };
+    bool isArray() const { return this->iArray; };
 
-    bool isNumber() { return this->iNumber; };
+    bool isNumber() const { return this->iNumber; };
 
-    bool isString() { return this->iString; };
+    bool isString() const { return this->iString; };
 
-    bool isBool() { return this->iBool; };
+    bool isBool() const { return this->iBool; };
 
-    bool isNull() { return this->null; };
+    bool isNull() const { return this->null; };
 
-    bool isBlank();
+    bool isBlank() const {
+        return !(this->iArray || this->iObject || this->iNumber || this->iString || this->null || this->iBool);
+    };
 
     friend std::ostream &operator<<(std::ostream &os, const JSON &j) {
         os << j.stringify();
@@ -116,21 +122,21 @@ public:
 
     void unshift(const JSON &j);
 
-    unsigned long getLength();
+    unsigned long getLength() const;
 
-    std::string getString();
+    std::string getString() const;
 
-    double getNumber();
+    double getNumber() const;
 
-    bool getBool();
+    bool getBool() const;
 
-    std::vector<JSON>::iterator begin();
+    std::vector<JSON>::const_iterator begin() const;
 
-    std::vector<JSON>::iterator end();
+    std::vector<JSON>::const_iterator end() const;
 
     std::string getEscapedString() const;
 
-    std::string getStringWithUnicode();
+    std::string getStringWithUnicode() const;
 
 private:
     static std::string trim(const std::string &);
@@ -141,7 +147,7 @@ private:
 
     void parseObject();
 
-    std::string doUnescape(const std::string &s, char c);
+    static std::string doUnescape(const std::string &s, char c);
 
     static std::string convertToUnicode(const std::string &s);
 
