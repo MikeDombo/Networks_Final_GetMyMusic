@@ -3,6 +3,7 @@
 #include <ctime>
 
 using std::string;
+using std::set;
 using std::vector;
 using std::ios;
 using std::stringstream;
@@ -38,11 +39,57 @@ void doListResponse(int sock, const string &directory) {
 }
 
 void doPullResponse(int sock, const string &directory, const json &pullRequest) {
+    log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested some files TODO")));
     debug("Received: " + pullRequest.stringify());
+    json pullResponse;
+    pullResponse["version"] = VERSION;
+    pullResponse["type"] = JSON("pullResponse", true);
+    json emptyArr;
+    emptyArr.makeArray();
+    pullResponse["response"] = emptyArr;
+
+    vector<MusicData> musicList = list(directory);
+    for (MusicData datum : musicList) {
+        // TODO: make the request part of a diffstruct an associative array
+        // Or better yet, parse it into a class and give it nice class methods
+        for (auto reqItem : pullRequest["request"]) { // O(n^2) -- big oof. 
+            if (datum.getFilename() == reqItem["filename"].getString() && 
+                datum.getChecksum() == reqItem["checksum"].getString()) {
+                pullResponse["response"].push(datum.getAsJSON(true));
+            }
+        }
+    }
+    sendToSocket(sock, pullResponse);
 }
 
 void doPushResponse(int sock, const string &directory, const json &pushRequest) {
+    log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested to send some files TODO")));
     debug("Received: " + pushRequest.stringify());
+    json pushResponse;
+    pushResponse["version"] = VERSION;
+    pushResponse["type"] = JSON("pushResponse", true);
+    json emptyArr;
+    emptyArr.makeArray();
+    pushResponse["response"] = emptyArr;
+
+    vector<string> filepaths = directoryFileListing(directory);
+    set<string> filenames;
+    for (string path : filepaths) {
+        filenames.insert(getFilename(path));
+    }
+    for (auto file : pushRequest["request"]) {
+        string newname = filenameIncrement(file["filename"].getString(), filenames);
+        auto dataIterable = base64Decode(file["data"].getString());
+        string data = string(dataIterable.begin(), dataIterable.end());
+        std::ofstream fileWriter(directory + newname);
+        fileWriter << data;
+        fileWriter.close(); 
+        json fileResp;
+        fileResp["filename"] = file["filename"];
+        fileResp["checksum"] = file["checksum"];
+        pushResponse["response"].push(fileResp);
+    }
+    sendToSocket(sock, pushResponse);
 }
 
 
@@ -72,12 +119,8 @@ void handleClient(int sock, const string &directory) {
         // Loop
         handleClient(sock, directory);
     } catch (std::exception &e) {
-        struct sockaddr_in clientSockaddr;
-        socklen_t addrLen = sizeof(clientSockaddr);
-        getpeername(sock, (sockaddr *) &clientSockaddr, &addrLen);
         std::ostringstream stringStream;
-        stringStream << "Client at " << inet_ntoa(clientSockaddr.sin_addr) << ":";
-        stringStream << ((int) ntohs(clientSockaddr.sin_port)) << " unexpectedly closed connection";
+        stringStream << "Client at " << getPeerStringFromSocket(sock) << " unexpectedly closed connection";
         log(stringStream.str());
         return;
     }

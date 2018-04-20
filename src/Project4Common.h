@@ -111,4 +111,6 @@ void debug(const std::string &debugMessage);
 
 std::string filenameIncrement(const std::string &filename, const std::set<std::string> &existingFilenames);
 
+std::string getPeerStringFromSocket(int sock);
+
 #endif

@@ -364,3 +364,13 @@ string filenameIncrement(const string &filename, const set<string> &existingFile
         return filename;
     }
 }
+
+string getPeerStringFromSocket(int sock) {
+    struct sockaddr_in clientSockaddr;
+    socklen_t addrLen = sizeof(clientSockaddr);
+    getpeername(sock, (sockaddr *) &clientSockaddr, &addrLen);
+    std::ostringstream clientInfo;
+    clientInfo << inet_ntoa(clientSockaddr.sin_addr) << ":";
+    clientInfo << ((int) ntohs(clientSockaddr.sin_port));
+    return clientInfo.str();
+}
