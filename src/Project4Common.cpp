@@ -207,7 +207,7 @@ void sendToSocket(int socket, const json &data) {
     sendToSocket(socket, data.stringify());
 }
 
-bool verifyJSONPacket(json &data) {
+bool verifyJSONPacket(const json &data) {
     bool verified = true;
 
     verified = verified && data.isObject() && data.hasKey("version")
@@ -248,6 +248,10 @@ bool verifyJSONPacket(json &data) {
     }
 
     return false;
+}
+
+bool verifyJSONPacket(const json &data, const string &type) {
+    return verifyJSONPacket(data) && data["type"].getString() == type;
 }
 
 // base64 uses an 8-bit character to store 6 "raw" bits. 

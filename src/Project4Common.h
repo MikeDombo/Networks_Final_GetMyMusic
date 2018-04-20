@@ -101,7 +101,9 @@ void sendToSocket(int socket, const std::string &data);
 
 void sendToSocket(int socket, const json &data);
 
-bool verifyJSONPacket(json &data);
+bool verifyJSONPacket(const json &data);
+
+bool verifyJSONPacket(const json &data, const std::string &type);
 
 std::string base64Encode(const std::vector<char> &inputBuffer);
 
