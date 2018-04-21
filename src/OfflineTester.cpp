@@ -17,6 +17,7 @@ using std::exception;
 using std::set;
 using std::map;
 
+/*
 void testBase64Encoding();
 void testBase64EncodingHappyString();
 void testFilenameIncrement();
@@ -29,16 +30,27 @@ json createDiffJSON(const std::map<std::string, std::set<std::string> > &clientM
                     const std::set<std::string> &serverFilenameSet);  // defined in Project4Client.cpp. Requires that the main() method therein be commented out
 json buildPullRequestFromDiffStruct(json diffStruct);
 json buildPushRequestFromDiffStruct(json diffStruct);
+*/
+
+void testCreateMessage();
 
 int main() {
   //testBase64Encoding();
   //testBase64EncodingHappyString();
   //testFilenameIncrement();
   //testBuildDiffStruct();
-  testBuildPushPull();
-  return 0;
+  //testBuildPushPull();
+    testCreateMessage();
+    return 0;
 }
 
+void testCreateMessage() {
+    Message m;
+    cout << "Message m: " << m.stringify() << endl;
+    assert(m["version"] == json(VERSION));
+}
+
+/*
 void testBase64Encoding() {
   // 1. Equivalent conversions for ASCII string
   testBase64EncodingHappyString();
@@ -247,4 +259,4 @@ void testBuildPushPull() {
   testBuildPushPullDuplicatesClient();
   testBuildPushPullDuplicatesServer();
   testBuildPushPullComplicated();
-}
+}*/

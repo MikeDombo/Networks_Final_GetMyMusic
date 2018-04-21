@@ -19,8 +19,8 @@ Project4Server: build/Project4Server.o build/Project4Common.o build/CCRC32.o bui
 Project4Client: build/Project4Client.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Client.o build/CCRC32.o build/HappyPathJSON.o -o Project4Client
 
-OfflineTester: build/OfflineTester.o build/Project4Client.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
-	$(CC) $(LDFLAGS) build/OfflineTester.o build/Project4Client.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o -o OfflineTester
+OfflineTester: build/OfflineTester.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/OfflineTester.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o -o OfflineTester
 
 build/Project4Common.o: src/Project4Common.h src/Project4Common.cpp
 	$(CC) $(CFLAGS) src/Project4Common.cpp -o build/Project4Common.o

@@ -107,7 +107,7 @@ All messages in our protocol will share a common envelope:
     ```JSON
     {
       "version": 1,
-      "type": "listRequest",
+      "type": "listRequest"
     }
     ```
   - **listResponse:** response info consisting of a list of (filename, checksum) tuples.
@@ -119,11 +119,11 @@ All messages in our protocol will share a common envelope:
       "response": [
         {
           "filename": "file1",
-          "checksum": "aaabaaajss",
+          "checksum": "aaabaaajss"
         },
         {
           "filename": "file2",
-          "checksum": "wg2gnxgrrr",
+          "checksum": "wg2gnxgrrr"
         }
       ]
     }
@@ -137,11 +137,11 @@ All messages in our protocol will share a common envelope:
       "request": [
         {
           "filename": "file1",
-          "checksum": "aaabaaajss",
+          "checksum": "aaabaaajss"
         },
         {
           "filename": "file2",
-          "checksum": "wg2gnxgrrr",
+          "checksum": "wg2gnxgrrr"
         }
       ]
     }
@@ -198,11 +198,11 @@ All messages in our protocol will share a common envelope:
       "response": [
         {
           "filename": "file3",
-          "checksum": "AATTVVV",
+          "checksum": "AATTVVV"
         },
         {
           "filename": "file4",
-          "checksum": "ABBBBBBK",
+          "checksum": "ABBBBBBK"
         }
       ]
     }
@@ -213,7 +213,7 @@ All messages in our protocol will share a common envelope:
     ```JSON
     {
       "version": 1,
-      "type": "leave",
+      "type": "leave"
     }
     ```
 

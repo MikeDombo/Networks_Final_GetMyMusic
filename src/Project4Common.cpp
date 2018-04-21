@@ -378,3 +378,7 @@ string getPeerStringFromSocket(int sock) {
     clientInfo << ((int) ntohs(clientSockaddr.sin_port));
     return clientInfo.str();
 }
+
+Message::Message() {
+    (*this)["version"] = VERSION;
+}

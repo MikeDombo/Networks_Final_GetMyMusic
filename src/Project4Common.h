@@ -85,6 +85,12 @@ private:
     std::string checksum;
 };
 
+class Message: public json {
+public:
+    Message();
+    Message(const json& contents);
+};
+
 bool isDirectory(const std::string &path);
 
 std::vector<std::string> directoryFileListing(const std::string &path);
