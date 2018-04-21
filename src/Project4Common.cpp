@@ -382,3 +382,39 @@ string getPeerStringFromSocket(int sock) {
 Message::Message() {
     (*this)["version"] = VERSION;
 }
+
+Request::Request() {
+    json emptyArr;
+    emptyArr.makeArray();
+    (*this)["request"] = emptyArr;
+}
+
+ListRequest::ListRequest() {
+    (*this)["type"] = json("listRequest", true);
+}
+
+PullRequest::PullRequest() {
+    (*this)["type"] = json("pullRequest", true);
+}
+
+PushRequest::PushRequest() {
+    (*this)["type"] = json("pushRequest", true);
+}
+
+Response::Response() {
+    json emptyArr;
+    emptyArr.makeArray();
+    (*this)["response"] = emptyArr;
+}
+
+ListResponse::ListResponse() {
+    (*this)["type"] = json("listResponse", true);
+}
+
+PullResponse::PullResponse() {
+    (*this)["type"] = json("pullResponse", true);
+}
+
+PushResponse::PushResponse() {
+    (*this)["type"] = json("pushResponse", true);
+}

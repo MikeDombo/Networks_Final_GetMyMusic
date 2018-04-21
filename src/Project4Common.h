@@ -87,8 +87,48 @@ private:
 
 class Message: public json {
 public:
-    Message();
-    Message(const json& contents);
+    Message();  // Sets the "version" field
+    //explicit Message(const json &j);  // I have no idea how to make this work
+};
+
+class Request: public Message {
+public:
+    Request();  // Sets the "request" field to an empty JSON array
+};
+
+class ListRequest: public Request {
+public:
+    ListRequest();
+};
+
+class PullRequest: public Request {
+public:
+    PullRequest();
+};
+
+class PushRequest: public Request {
+public:
+    PushRequest();
+};
+
+class Response: public Message {
+public:
+    Response();  // Sets the "response" field to an empty JSON array
+};
+
+class ListResponse: public Response {
+public:
+    ListResponse();
+};
+
+class PullResponse: public Response {
+public:
+    PullResponse();
+};
+
+class PushResponse: public Response {
+public:
+    PushResponse();
 };
 
 bool isDirectory(const std::string &path);

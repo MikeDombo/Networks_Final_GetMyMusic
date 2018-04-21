@@ -17,10 +17,11 @@ using std::exception;
 using std::set;
 using std::map;
 
-/*
 void testBase64Encoding();
 void testBase64EncodingHappyString();
 void testFilenameIncrement();
+
+/*
 void testBuildDiffStruct();
 void testBuildPushPull();
 
@@ -32,7 +33,8 @@ json buildPullRequestFromDiffStruct(json diffStruct);
 json buildPushRequestFromDiffStruct(json diffStruct);
 */
 
-void testCreateMessage();
+void testMessages();
+void testCreateMessagesAndSubclasses();
 
 int main() {
   //testBase64Encoding();
@@ -40,17 +42,53 @@ int main() {
   //testFilenameIncrement();
   //testBuildDiffStruct();
   //testBuildPushPull();
-    testCreateMessage();
+    testMessages();
     return 0;
 }
 
-void testCreateMessage() {
+void testCreateMessagesAndSubclasses() {
     Message m;
     cout << "Message m: " << m.stringify() << endl;
-    assert(m["version"] == json(VERSION));
+    assert(m == json("{\"version\":1.0}"));
+
+    Request req;
+    cout << "Request req: " << req.stringify() << endl;
+    assert(req == json("{\"request\":[],\"version\":1}"));
+
+    ListRequest listRequest;
+    cout << "ListRequest lReq: " << listRequest.stringify() << endl;
+    assert(listRequest == json("{\"request\":[],\"type\":\"listRequest\",\"version\":1}"));
+
+    PullRequest pullRequest;
+    cout << "PullRequest pullRequest: " << pullRequest.stringify() << endl;
+    assert(pullRequest == json("{\"request\":[],\"type\":\"pullRequest\",\"version\":1}"));
+
+    PushRequest pushRequest;
+    cout << "PushRequest pushRequest: " << pushRequest.stringify() << endl;
+    assert(pushRequest == json("{\"request\":[],\"type\":\"pushRequest\",\"version\":1}"));
+
+    Response resp;
+    cout << "Response resp: " << resp.stringify() << endl;
+    assert(resp == json("{\"response\":[],\"version\":1}"));
+
+    ListResponse listResponse;
+    cout << "ListResponse lResponse: " << listResponse.stringify() << endl;
+    assert(listResponse == json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}"));
+
+    PullResponse pullResponse;
+    cout << "PullResponse pullResponse: " << pullResponse.stringify() << endl;
+    assert(pullResponse == json("{\"response\":[],\"type\":\"pullResponse\",\"version\":1}"));
+
+    PushResponse pushResponse;
+    cout << "PushResponse pushResponse: " << pushResponse.stringify() << endl;
+    assert(pushResponse == json("{\"response\":[],\"type\":\"pushResponse\",\"version\":1}"));
+
 }
 
-/*
+void testMessages() {
+    testCreateMessagesAndSubclasses();
+}
+
 void testBase64Encoding() {
   // 1. Equivalent conversions for ASCII string
   testBase64EncodingHappyString();
@@ -67,9 +105,9 @@ void testBase64Encoding() {
   Base64::Encode(strBuffer, &target);
   cout << "    Target Output: \"" << target << "\"" << endl;
 
-  string myresult = base64Encode(buffer);
-  cout << "    Actual Output: \"" << myresult << "\"" << endl;
-  assert(myresult == target);
+  string myResult = base64Encode(buffer);
+  cout << "    Actual Output: \"" << myResult << "\"" << endl;
+  assert(myResult == target);
 }
 
 void testBase64EncodingHappyString() {
@@ -83,9 +121,9 @@ void testBase64EncodingHappyString() {
   istringstream input(simpleString);
   vector<char> buffer((istreambuf_iterator<char>(input)),
                            istreambuf_iterator<char>());
-  string myresult = base64Encode(buffer);
-  cout << "    Actual Output: \"" << myresult << "\"" << endl;
-  assert(myresult == target);
+  string myResult = base64Encode(buffer);
+  cout << "    Actual Output: \"" << myResult << "\"" << endl;
+  assert(myResult == target);
 }
 
 void testFilenameIncrement() {
@@ -122,6 +160,7 @@ void testFilenameIncrement() {
   assert(obsvFname == "file2 (3).ext");
 }
 
+/*
 void testBuildDiffStructDuplicateBoth() {
   cout << "  Case where a file exists on both client and server" << endl;
   set<string> clientFilenameSet = set<string>{"c.txt", "e.txt"};
@@ -135,10 +174,10 @@ void testBuildDiffStructDuplicateBoth() {
   serverFiles["6b9df6f"] = set<string>{"c.txt"};
 
   json target = json("{\"duplicateBothClientServer\":[{\"checksum\":\"6b9df6f\",\"clientFilenames\":[\"c.txt\"],\"serverFilenames\":[\"c.txt\"]}],\"uniqueOnlyClient\":[{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"}],\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"}]}");
-  json myresult = createDiffJSON(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
+  json myResult = createDiffJSON(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
   cout << "    Target output: " << target.stringify() << endl;
-  cout << "    Actual output: " << myresult.stringify() << endl;
-  assert(myresult == target);
+  cout << "    Actual output: " << myResult.stringify() << endl;
+  assert(myResult == target);
 }
 
 void testBuildDiffStructConflict() {
@@ -159,10 +198,10 @@ void testBuildDiffStructConflict() {
   
   json target = json("{\"duplicateBothClientServer\":[{\"checksum\":\"6b9df6f\",\"clientFilenames\":[\"c.txt\"],\"serverFilenames\":[\"c.txt\"]}],\"uniqueOnlyClient\":[{\"checksum\":\"b9866403\",\"filename\":\"e.txt\"},{\"checksum\":\"abcdef\",\"filename\":\"b.txt\"},{\"checksum\":\"54321\",\"filename\":\"b (1).txt\"}],\"uniqueOnlyServer\":[{\"checksum\":\"e8b7be43\",\"filename\":\"a.txt\"},{\"checksum\":\"12345\",\"filename\":\"b.txt\"}],\"clientToServerConflicts\":[{\"clientFilename\":\"b.txt\",\"serverTargetFilename\":\"b (1).txt\"}],\"serverToClientConflicts\":[{\"serverFilename\":\"b.txt\",\"clientTargetFilename\":\"b (2).txt\"}]}");
 
-  json myresult = createDiffJSON(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
+  json myResult = createDiffJSON(clientFiles, clientFilenameSet, serverFiles, serverFilenameSet);
   cout << "    Target output: " << target.stringify() << endl;
-  cout << "    Actual output: " << myresult.stringify() << endl;
-  assert(myresult == target);
+  cout << "    Actual output: " << myResult.stringify() << endl;
+  assert(myResult == target);
 }
 
 void testBuildDiffStruct() {
