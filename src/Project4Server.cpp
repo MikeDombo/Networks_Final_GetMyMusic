@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
     //Select() code
     //------------------------------------------
-    int opt = 1;
+    int opt = true;
     int master_socket, addrlen, new_socket, client_socket[1024],
         max_clients = 1024, activity, i, sd;
     int max_sd;
@@ -101,15 +101,13 @@ int main(int argc, char **argv) {
         client_socket[i] = 0;
     }
 
-    if((master_socket = socket(AF_INET, SOCK_STREAM, 0) == 0)){
+    if((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0){
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
 
-    //------------------------------------------
-
     //set master socket to accept multiple connections (up to 1024)
-    if(setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt))){
+    if(setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0){
         perror("setsockopt");
         exit(EXIT_FAILURE);
     } 
