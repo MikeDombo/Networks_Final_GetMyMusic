@@ -25,7 +25,7 @@ ListRequest::ListRequest() {
 ListRequest::ListRequest(ListRequest const&) {
 }
 
-ListRequest::ListRequest (const JSON& j) {
+ListRequest::ListRequest(const JSON& j) {
     if (!verifyJSONPacket(j, "listRequest")) {
         throw messageCastException;
     }
@@ -41,7 +41,7 @@ PullRequest::PullRequest() {
 }
 
 
-PullRequest::PullRequest (const JSON& j) {
+PullRequest::PullRequest(const JSON& j) {
     if (!verifyJSONPacket(j, "pullRequest")) {
         throw messageCastException;
     }
@@ -53,7 +53,7 @@ PushRequest::PushRequest() {
 }
 
 
-PushRequest::PushRequest (const JSON& j) {
+PushRequest::PushRequest(const JSON& j) {
     if (!verifyJSONPacket(j, "pushRequest")) {
         throw messageCastException;
     }
@@ -71,7 +71,7 @@ ListResponse::ListResponse() {
 }
 
 
-ListResponse::ListResponse (const JSON& j) {
+ListResponse::ListResponse(const JSON& j) {
     if (!verifyJSONPacket(j, "listResponse")) {
         throw messageCastException;
     }
@@ -83,9 +83,19 @@ PullResponse::PullResponse() {
 }
 
 
-PullResponse::PullResponse (const JSON& j) {
+PullResponse::PullResponse(const JSON& j) {
     if (!verifyJSONPacket(j, "pullResponse")) {
         throw messageCastException;
+    }
+}
+
+void PullResponse::writeFiles() {
+    for (auto fileDatum: this["response"]) {  // always write as much as we can
+        auto dataIterable = base64Decode(fileDatum["data"].getString());
+        string data = string(dataIterable.begin(), dataIterable.end());
+        ofstream fileWriter(directory + fileDatum["filename"].getString());
+        fileWriter << data;
+        fileWriter.close();
     }
 }
 
@@ -95,7 +105,7 @@ PushResponse::PushResponse() {
 }
 
 
-PushResponse::PushResponse (const JSON& j) {
+PushResponse::PushResponse(const JSON& j) {
     if (!verifyJSONPacket(j, "pushResponse")) {
         throw messageCastException;
     }

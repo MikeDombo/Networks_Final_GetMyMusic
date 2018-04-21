@@ -347,18 +347,9 @@ bool isResponseComplete(const json &response, const json &request) {
     return numRequested == numReceived;
 }
 
-bool handlePullResponse(const json &pullResponse, const json &pullRequest) {
-    debug(string("Handling pull response").append(pullRequest.stringify()));
-    if (!verifyJSONPacket(pullResponse, "pullResponse")) {
-        return false;  // Quit early before trying to write files
-    }
-    for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
-        auto dataIterable = base64Decode(fileDatum["data"].getString());
-        string data = string(dataIterable.begin(), dataIterable.end());
-        ofstream fileWriter(directory + fileDatum["filename"].getString());
-        fileWriter << data;
-        fileWriter.close();
-    }
+bool handlePullResponse(const PullResponse &pullResponse, const PullRequest &pullRequest) {
+    debug(string("Handling pull response").append(pullResponse.stringify()));
+    pullResponse.writeFiles(directory);
     return isResponseComplete(pullResponse, pullRequest);
 }
 
