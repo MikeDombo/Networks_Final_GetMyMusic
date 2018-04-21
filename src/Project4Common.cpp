@@ -71,7 +71,7 @@ json MusicData::getAsJSON(bool withData) {
     json fileJ = json();
 
     fileJ["filename"] = this->filename;
-    fileJ["checksum"] = this->checksum;
+    fileJ["checksum"] = JSON(this->checksum, true);
     if (withData) {
         fileJ["data"] = b64Encode();
     }
