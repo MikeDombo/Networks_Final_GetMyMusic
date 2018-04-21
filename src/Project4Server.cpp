@@ -109,8 +109,8 @@ void handleClient(int sock, const string &directory, const string &logFilepath) 
             } else if (type == "pullRequest") {
                 log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested to pull files: (TODO)")), logFilepath);
                 doPullResponse(sock, directory, queryJ);
-                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested to send some files: (TODO)")), logFilepath);
             } else if (type == "pushRequest") {
+                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested to send some files: (TODO)")), logFilepath);
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
                 log("Client at " + getPeerStringFromSocket(sock) + " cleanly closed connection", logFilepath);
