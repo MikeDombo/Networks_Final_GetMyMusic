@@ -201,7 +201,6 @@ json doDiff(json listResponse) {
      *  return a json struct of that for further use
      */
     debug(string("In doDiff(json listResponse)"));
-    assert(verifyJSONPacket(listResponse, "listResponse"));
 
     map<string, set<string>> clientMap;
     set<string> clientFilenameSet = set<string>();
@@ -367,7 +366,7 @@ void handleSync(int sock) {
     cout << "=====================" << endl;
 
     auto answerJ = doList(sock);
-    if (!verifyJSONPacket(answerJ)) {
+    if (!verifyJSONPacket(answerJ, "listResponse")) {
         cout << "Unable to verify listResponse from server!" << endl;
         return;
     }
