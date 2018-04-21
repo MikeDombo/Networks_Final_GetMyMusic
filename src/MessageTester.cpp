@@ -78,21 +78,144 @@ void testDefaultConstructors() {
 
 void testCopyConstructors() {
     try {
-        ListRequest l = ListRequest(json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}"));
+        ListRequest listRequest = ListRequest(json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}"));
         cout << "Attempting to construct a ListRequest from invalid JSON succeeded when it should have failed" << endl;
         assert(false);
     } catch (std::exception &e){
         cout << "Attempting to construct a ListRequest from invalid JSON failed correctly" << endl;
         assert(true);
     }
-    ListRequest l = ListRequest(json("{\"request\":[],\"type\":\"listRequest\",\"version\":1}"));
+    cout << "Copy constructor for ListRequest" << endl;
+    ListRequest listRequest = ListRequest(json("{\"request\":[],\"type\":\"listRequest\",\"version\":1}"));
 
+    try {
+        PullRequest pullRequest = PullRequest(json("{\"response\":[],\"type\":\"pullResponse\",\"version\":1}"));
+        cout << "Attempting to construct a PullRequest from invalid JSON succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to construct a PullRequest from invalid JSON failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Copy constructor for PullRequest" << endl;
+    PullRequest pullRequest = PullRequest(json("{\"request\":[],\"type\":\"pullRequest\",\"version\":1}"));
+    
+    try {
+        PushRequest pushRequest = PushRequest(json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}"));
+        cout << "Attempting to construct a PushRequest from invalid JSON succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to construct a PushRequest from invalid JSON failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Copy constructor for PushRequest" << endl;
+    PushRequest pushRequest = PushRequest(json("{\"request\":[],\"type\":\"pushRequest\",\"version\":1}"));
 
+    try {
+        ListResponse listResponse = ListResponse(json("{\"purple\":[],\"type\":\"listRequest\",\"version\":1}"));
+        cout << "Attempting to construct a ListResponse from invalid JSON succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to construct a ListResponse from invalid JSON failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Copy constructor for ListResponse" << endl;
+    ListResponse listResponse = ListResponse(json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}"));
+
+    try {
+        PullResponse pullResponse = PullResponse(json("{\"request\":[],\"type\":\"listRequest\",\"version\":1}"));
+        cout << "Attempting to construct a PullResponse from invalid JSON succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to construct a PullResponse from invalid JSON failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Copy constructor for PullResponse" << endl;
+    PullResponse pullResponse = PullResponse(json("{\"response\":[],\"type\":\"pullResponse\",\"version\":1}"));
+
+    try {
+        PushResponse pushResponse = PushResponse(json("{\"response\":[],\"type\":\"listRequest\",\"version\":1}"));
+        cout << "Attempting to construct a PushResponse from invalid JSON succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to construct a PushResponse from invalid JSON failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Copy constructor for PushResponse" << endl;
+    PushResponse pushResponse = PushResponse(json("{\"response\":[],\"type\":\"pushResponse\",\"version\":1}"));
+}
+
+void testAssignmentOperators() {
+    try {
+        ListRequest listRequest = (ListRequest) json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}");
+        cout << "Attempting to assign invalid JSON to a ListRequest succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to assign invalid JSON to a ListRequest failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Assignment operator for ListRequest" << endl;
+    ListRequest listRequest = (ListRequest) json("{\"request\":[],\"type\":\"listRequest\",\"version\":1}");
+
+    try {
+        PullRequest pullRequest = (PullRequest) json("{\"response\":[],\"type\":\"pullResponse\",\"version\":1}");
+        cout << "Attempting to assign invalid JSON to a PullRequest succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to assign invalid JSON to a PullRequest failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Assignment operator for PullRequest" << endl;
+    PullRequest pullRequest = (PullRequest) json("{\"request\":[],\"type\":\"pullRequest\",\"version\":1}");
+
+    try {
+        PushRequest pushRequest = (PushRequest) json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}");
+        cout << "Attempting to assign invalid JSON to a PushRequest succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to assign invalid JSON to a PushRequest failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Assignment operator for PushRequest" << endl;
+    PushRequest pushRequest = (PushRequest) json("{\"request\":[],\"type\":\"pushRequest\",\"version\":1}");
+
+    try {
+        ListResponse listResponse = (ListResponse) json("{\"purple\":[],\"type\":\"listRequest\",\"version\":1}");
+        cout << "Attempting to assign invalid JSON to a ListResponse succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to assign invalid JSON to a ListResponse failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Assignment operator for ListResponse" << endl;
+    ListResponse listResponse = (ListResponse) json("{\"response\":[],\"type\":\"listResponse\",\"version\":1}");
+
+    try {
+        PullResponse pullResponse = (PullResponse) json("{\"request\":[],\"type\":\"listRequest\",\"version\":1}");
+        cout << "Attempting to assign invalid JSON to a PullResponse succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to assign invalid JSON to a PullResponse failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Assignment operator for PullResponse" << endl;
+    PullResponse pullResponse = (PullResponse) json("{\"response\":[],\"type\":\"pullResponse\",\"version\":1}");
+
+    try {
+        PushResponse pushResponse = (PushResponse) json("{\"response\":[],\"type\":\"listRequest\",\"version\":1}");
+        cout << "Attempting to assign invalid JSON to a PushResponse succeeded when it should have failed" << endl;
+        assert(false);
+    } catch (std::exception &e){
+        cout << "Attempting to assign invalid JSON to a PushResponse failed correctly" << endl;
+        assert(true);
+    }
+    cout << "Assignment operator for PushResponse" << endl;
+    PushResponse pushResponse = (PushResponse) json("{\"response\":[],\"type\":\"pushResponse\",\"version\":1}");
 }
 
 void testCreateMessagesAndSubclasses() {
     testDefaultConstructors();
     testCopyConstructors();
+    testAssignmentOperators();
 }
 
 void testMessages() {

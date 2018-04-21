@@ -22,15 +22,24 @@ ListRequest::ListRequest() {
     (*this)["type"] = (const json) json("listRequest", true);
 }
 
+ListRequest::ListRequest(ListRequest const&) {
+}
+
 ListRequest::ListRequest (const JSON& j) {
     if (!verifyJSONPacket(j, "listRequest")) {
         throw messageCastException;
     }
 }
 
+ListRequest& ListRequest::operator= (const JSON& j) {
+    *this = ListRequest(j);
+    return *this;
+}
+
 PullRequest::PullRequest() {
     (*this)["type"] = (const json) json("pullRequest", true);
 }
+
 
 PullRequest::PullRequest (const JSON& j) {
     if (!verifyJSONPacket(j, "pullRequest")) {
@@ -38,15 +47,18 @@ PullRequest::PullRequest (const JSON& j) {
     }
 }
 
+
 PushRequest::PushRequest() {
     (*this)["type"] = (const json) json("pushRequest", true);
 }
+
 
 PushRequest::PushRequest (const JSON& j) {
     if (!verifyJSONPacket(j, "pushRequest")) {
         throw messageCastException;
     }
 }
+
 
 Response::Response() {
     json emptyArr;
@@ -58,10 +70,34 @@ ListResponse::ListResponse() {
     (*this)["type"] = (const json) json("listResponse", true);
 }
 
+
+ListResponse::ListResponse (const JSON& j) {
+    if (!verifyJSONPacket(j, "listResponse")) {
+        throw messageCastException;
+    }
+}
+
+
 PullResponse::PullResponse() {
     (*this)["type"] = (const json) json("pullResponse", true);
 }
 
+
+PullResponse::PullResponse (const JSON& j) {
+    if (!verifyJSONPacket(j, "pullResponse")) {
+        throw messageCastException;
+    }
+}
+
+
 PushResponse::PushResponse() {
     (*this)["type"] = (const json) json("pushResponse", true);
 }
+
+
+PushResponse::PushResponse (const JSON& j) {
+    if (!verifyJSONPacket(j, "pushResponse")) {
+        throw messageCastException;
+    }
+}
+

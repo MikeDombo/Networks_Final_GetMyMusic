@@ -20,7 +20,9 @@ public:
 class ListRequest: public Request {
 public:
     ListRequest();
+    ListRequest(ListRequest const&);
     explicit ListRequest (const JSON& j);
+    ListRequest& operator= (const JSON& j);
 };
 
 class PullRequest: public Request {
@@ -44,16 +46,19 @@ public:
 class ListResponse: public Response {
 public:
     ListResponse();
+    explicit ListResponse (const JSON& j);
 };
 
 class PullResponse: public Response {
 public:
     PullResponse();
+    explicit PullResponse (const JSON& j);
 };
 
 class PushResponse: public Response {
 public:
     PushResponse();
+    explicit PushResponse (const JSON& j);
 };
 
 #endif
