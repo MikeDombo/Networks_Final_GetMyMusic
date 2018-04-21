@@ -46,7 +46,7 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
 }
 
 
-void handleClient(int sock, const string &directory) {
+void handleClient(int sock, const string &directory, int client_socket[], int client_sock_close_index) {
     auto query = receiveUntilByteEquals(sock, '\n');
     try {
         auto queryJ = json(query);  // will throw an exception if invalid JSON received
@@ -64,13 +64,15 @@ void handleClient(int sock, const string &directory) {
                 close(sock);
                 return;
             } else {
-                cout << "Unknown type: " << type << endl;
+                cout << "Closing connection to client with sd: " << sock
+                     << "and index in arr: " << client_sock_close_index << endl;
+                client_socket[client_sock_close_index] = 0;
                 close(sock);
             }
         }
 
         // Loop
-        handleClient(sock, directory);
+        //handleClient(sock, directory);
     } catch (std::exception &e) {
         struct sockaddr_in clientSockaddr;
         socklen_t addrLen = sizeof(clientSockaddr);
@@ -90,8 +92,7 @@ int main(int argc, char **argv) {
     //Select() code
     //------------------------------------------
     int opt = true;
-    int master_socket, addrlen, new_socket, client_socket[1024],
-        max_clients = 1024, activity, i, sd;
+    int master_socket, addrlen, new_socket, max_clients = 3, client_socket[max_clients], activity, i, sd;
     int max_sd;
 
     //set of socket descriptors
@@ -153,7 +154,7 @@ int main(int argc, char **argv) {
     }
 
     /* Mark the socket so it will listen for incoming connections */
-    if (listen(master_socket, 1024) < 0) {
+    if (listen(master_socket, max_clients) < 0) {
         perror("listen() failed");
         exit(1);
     }
@@ -178,10 +179,13 @@ int main(int argc, char **argv) {
             if(sd > 0) FD_SET(sd, &readfds);
 
             //find highest file descriptor number
-            max_sd = (sd > max_sd) ? sd : max_sd;
+            if(sd > max_sd) max_sd = sd;
+            cout << "Setting sd " << sd << " and max_sd is: " << max_sd << endl;
         }
 
         activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
+
+        cout << "select() called! " << endl;
 
         if((activity < 0) && (errno != EINTR)){
             printf("select() error");
@@ -207,23 +211,25 @@ int main(int argc, char **argv) {
                     client_socket[i] = new_socket;  
                     printf("Adding to list of sockets as %d\n" , i);  
                         
-                    break;  
+                    break;
                 }  
             }
 
             // When a client connects, handle them using handleClient()
-            handleClient(new_socket, directory);
+            handleClient(new_socket, directory, client_socket, -1);
+            cout << "Finished handling client request" << endl;
         }
 
         //Handle IO operations on socket with incoming message
         for (i = 0; i < max_clients; i++)  
         {  
-            sd = client_socket[i];  
+            sd = client_socket[i];
+            cout << "Iterating through socket " << sd << endl;  
                 
             if (FD_ISSET(sd , &readfds))  
             {  
-               handleClient(sd, directory);
-               //TODO if client closes connection, then free up space in client_socket array for reuse   
+               cout << "Handling client " << sd << endl;
+               handleClient(sd, directory, client_socket, i);
             }  
         }
     }
