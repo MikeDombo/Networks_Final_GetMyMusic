@@ -89,8 +89,7 @@ string MusicData::b64Encode() {
 }
 
 string MusicData::makeChecksum() {
-    CCRC32 crc32;
-    crc32.Initialize();
+    CRC32 crc32;
     stringstream stream;
     stream << hex << crc32.FileCRC(this->path.c_str());
     return stream.str();

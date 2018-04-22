@@ -17,14 +17,14 @@ all: testFiles $(EXECUTABLE)
 # Executables
 ################################################################################
 
-Project4Server: build/Project4Server.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
-	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Server.o build/CCRC32.o build/HappyPathJSON.o -o Project4Server
+Project4Server: build/Project4Server.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Server.o build/CRC32.o build/HappyPathJSON.o -o Project4Server
 
-Project4Client: build/Project4Client.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
-	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Client.o build/CCRC32.o build/HappyPathJSON.o -o Project4Client
+Project4Client: build/Project4Client.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Client.o build/CRC32.o build/HappyPathJSON.o -o Project4Client
 
-MessageTester: build/MessageTester.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
-	$(CC) $(LDFLAGS) build/MessageTester.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o -o MessageTester
+MessageTester: build/MessageTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/MessageTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o MessageTester
 
 JSONTest: build/JSONTest.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/JSONTest.o build/HappyPathJSON.o -o JSONTest
@@ -49,8 +49,8 @@ build/Base64Tester.o: src/Base64Tester.cpp
 build/MessageTester.o: src/MessageTester.cpp
 	$(CC) $(CFLAGS) src/MessageTester.cpp -o build/MessageTester.o
 
-build/CCRC32.o: src/lib/CCRC32.cpp src/lib/CCRC32.h
-	$(CC) $(CFLAGS) src/lib/CCRC32.cpp -o build/CCRC32.o
+build/CRC32.o: src/lib/CRC32.cpp src/lib/CRC32.h
+	$(CC) $(CFLAGS) src/lib/CRC32.cpp -o build/CRC32.o
 
 build/HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
 	$(CC) $(CFLAGS) src/HappyPathJSON.cpp -o build/HappyPathJSON.o
