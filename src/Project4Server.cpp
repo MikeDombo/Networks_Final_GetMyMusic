@@ -231,12 +231,9 @@ int main(int argc, char **argv) {
 
             //find highest file descriptor number
             if (sd > max_sd) max_sd = sd;
-            //cout << "Setting sd " << sd << " and max_sd is: " << max_sd << endl;
         }
 
         activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
-
-        //cout << "select() called! " << endl;
 
         if ((activity < 0) && (errno != EINTR)) {
             printf("select() error");
@@ -263,19 +260,13 @@ int main(int argc, char **argv) {
                     break;
                 }
             }
-
-            // When a client connects, handle them using handleClient()
-            handleClient(new_socket, directory, client_socket, -1, logFilepath);
-            //cout << "Finished handling client request" << endl;
         }
 
         //Handle IO operations on socket with incoming message
         for (i = 0; i < max_clients; i++) {
             sd = client_socket[i];
-            //cout << "Iterating through socket " << sd << endl;  
 
             if (FD_ISSET(sd, &readfds)) {
-                //cout << "Handling client " << sd << endl;
                 handleClient(sd, directory, client_socket, i, logFilepath);
             }
         }
