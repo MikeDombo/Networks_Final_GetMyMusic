@@ -1,5 +1,5 @@
 #include "Project4Common.h"
-#include <stdint.h>
+#include <cstdint>
 
 using std::string;
 using std::vector;

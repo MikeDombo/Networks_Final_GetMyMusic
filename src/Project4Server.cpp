@@ -54,9 +54,9 @@ void doPullResponse(int sock, const string &directory, const json &pullRequest) 
     vector<MusicData> musicList = list(directory);
     for (auto reqItem : pullRequest["request"]) {
         for (MusicData datum : musicList) { // O(n^2) -- big oof.
-        // TODO: make the request part of a diffstruct an associative array
-        // Or better yet, parse it into a class and give it nice class methods
-            if (datum.getFilename() == reqItem["filename"].getString() && 
+            // TODO: make the request part of a diffstruct an associative array
+            // Or better yet, parse it into a class and give it nice class methods
+            if (datum.getFilename() == reqItem["filename"].getString() &&
                 datum.getChecksum() == reqItem["checksum"].getString()) {
                 pullResponse["response"].push(datum.getAsJSON(true));
             }
@@ -84,7 +84,7 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
         string data = string(dataIterable.begin(), dataIterable.end());
         std::ofstream fileWriter(directory + newname);
         fileWriter << data;
-        fileWriter.close(); 
+        fileWriter.close();
         json fileResp;
         fileResp["filename"] = file["filename"];
         fileResp["checksum"] = file["checksum"];
@@ -104,12 +104,15 @@ void handleClient(int sock, const string &directory, const string &logFilepath) 
             string type = queryJ["type"].getString();
 
             if (type == "listRequest") {
-                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested a list of files")), logFilepath);
+                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
+                        string(" requested a list of files")), logFilepath);
                 doListResponse(sock, directory);
             } else if (type == "pullRequest") {
-                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested to pull files: (TODO)")), logFilepath);
+                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
+                        string(" requested to pull files: (TODO)")), logFilepath);
                 doPullResponse(sock, directory, queryJ);
-                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(string(" requested to send some files: (TODO)")), logFilepath);
+                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
+                        string(" requested to send some files: (TODO)")), logFilepath);
             } else if (type == "pushRequest") {
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
