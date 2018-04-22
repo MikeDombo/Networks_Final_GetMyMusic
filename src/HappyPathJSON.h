@@ -91,6 +91,16 @@ public:
 
     bool isArray() const { return this->iArray; };
 
+    ssize_t size() const {
+        if (this->iArray) {
+            return this->arrayEls.size();
+        } else if (this->isObject()) {
+            return this->objectEls.size();
+        } else {
+            return -1;
+        }
+    }
+
     bool isNumber() const { return this->iNumber; };
 
     bool isString() const { return this->iString; };

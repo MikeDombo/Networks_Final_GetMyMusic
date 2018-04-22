@@ -60,25 +60,25 @@ void sendListRequest(int sock) {
     sendToSocket(sock, listRequestPacket);
 }
 
-void cleanExit(int sock) {
+void handleLeave(int sock) {
     sendLeave(sock);
     close(sock);
 }
 
-json getResponse(int sock) {
+json receiveResponse(int sock) {
     auto answer = receiveUntilByteEquals(sock, '\n');
     json answerJ = json(answer);
     return answerJ;
 }
 
-json getListResponse(int sock) {
+json doList(int sock) {
     sendListRequest(sock);
-    json answerJ = getResponse(sock);
+    json answerJ = receiveResponse(sock);
     return answerJ;
 }
 
-void handleGetListResponse(int sock) {
-    auto answerJ = getListResponse(sock);
+void handleList(int sock) {
+    auto answerJ = doList(sock);
     if (verifyJSONPacket(answerJ)) {
         auto responses = answerJ["response"];
         cout << "Server Files Listing:" << endl
@@ -106,7 +106,7 @@ json setToJsonList(const set<string> &values) {
 }
 
 void
-considerFileConflict(json &diffStruct, const string &filename, const set<string> &filenameSet, bool isClient) {
+considerFileConflict(json &diffJSON, const string &filename, const set<string> &filenameSet, bool isClient) {
     if (filenameSet.find(filename) != filenameSet.end()) {
         json conflict;
         string sourceFilenameKey = "clientFilename";
@@ -119,13 +119,13 @@ considerFileConflict(json &diffStruct, const string &filename, const set<string>
         }
         conflict[sourceFilenameKey] = filename;
         conflict[targetFilenameKey] = filenameIncrement(filename, filenameSet);
-        diffStruct[conflictKey].push(conflict);
+        diffJSON[conflictKey].push(conflict);
     }
 }
 
-json buildDiffStruct(const map<string, set<string> > &clientMap, const set<string> &clientFilenameSet,
-                     const map<string, set<string> > &serverMap, const set<string> &serverFilenameSet) {
-    json diffStruct;
+json createDiffJSON(const map<string, set<string> > &clientMap, const set<string> &clientFilenameSet,
+                    const map<string, set<string> > &serverMap, const set<string> &serverFilenameSet) {
+    json diffJSON;
     // iterate through clientMap, classifying checksums
     for (auto iter = clientMap.begin(); iter != clientMap.end(); ++iter) {
         string cCsum = iter->first;
@@ -139,24 +139,24 @@ json buildDiffStruct(const map<string, set<string> > &clientMap, const set<strin
             duplB["clientFilenames"] = setToJsonList(cFnames);
             tmpFnames = serverMap.at(cCsum);
             duplB["serverFilenames"] = setToJsonList(tmpFnames);
-            diffStruct["duplicateBothClientServer"].push(duplB);
+            diffJSON["duplicateBothClientServer"].push(duplB);
         } else if (cFnames.size() > 1) {
             debug("    Found multiple files matching the checksum, only on the client");
             json duplC;
             duplC["checksum"] = JSON(cCsum, true);
             duplC["filenames"] = setToJsonList(cFnames);
-            diffStruct["duplicateOnlyClient"].push(duplC);
+            diffJSON["duplicateOnlyClient"].push(duplC);
             // if the lexicographically first duplicate filename on the client is also in serverFilenames, we have a conflict.
             string firstFname = (duplC["filenames"])[0].getString();
-            considerFileConflict(diffStruct, firstFname, serverFilenameSet, true);
+            considerFileConflict(diffJSON, firstFname, serverFilenameSet, true);
         } else {                                              // file is unique on client
             debug("    Only 1 file matches the checksum, on client");
             json uniqueC;
             uniqueC["checksum"] = JSON(cCsum, true);
             string fname = *(cFnames.begin());
             uniqueC["filename"] = JSON(fname, true);
-            diffStruct["uniqueOnlyClient"].push(uniqueC);
-            considerFileConflict(diffStruct, fname, serverFilenameSet, true);
+            diffJSON["uniqueOnlyClient"].push(uniqueC);
+            considerFileConflict(diffJSON, fname, serverFilenameSet, true);
         }
     }
     debug("  Finished iterating through client checksums. Iterating through server checksums.");
@@ -174,24 +174,24 @@ json buildDiffStruct(const map<string, set<string> > &clientMap, const set<strin
             json duplS;
             duplS["checksum"] = JSON(sCsum, true);  // true = please wrap in QUOTATION marks
             duplS["filenames"] = setToJsonList(sFnames);
-            diffStruct["duplicateOnlyServer"].push(duplS);
+            diffJSON["duplicateOnlyServer"].push(duplS);
             // if the lexicographically first duplicate filename on the server is also in clientFilenames, we have a conflict.
             string firstFname = (duplS["filenames"])[0].getString();
-            considerFileConflict(diffStruct, firstFname, clientFilenameSet, false);
+            considerFileConflict(diffJSON, firstFname, clientFilenameSet, false);
         } else {                                              // file is unique on server
             debug("    Only 1 file matches the checksum, on server");
             json uniqueS;
             uniqueS["checksum"] = JSON(sCsum, true);
             string fname = *(sFnames.begin());
             uniqueS["filename"] = JSON(fname, true);
-            diffStruct["uniqueOnlyServer"].push(uniqueS);
-            considerFileConflict(diffStruct, fname, clientFilenameSet, false);
+            diffJSON["uniqueOnlyServer"].push(uniqueS);
+            considerFileConflict(diffJSON, fname, clientFilenameSet, false);
         }
     }
-    return diffStruct;
+    return diffJSON;
 }
 
-json getDiff(int sock, json answerJ) {
+json doDiff(json listResponse) {
     /* pseudocode:
      *  make a map of checksums to sets of filenames. This facilitates identifying duplicates
      *  make a set of filenames on the client and a set of filenames on the server, to facilitate identifying conflicts
@@ -200,7 +200,8 @@ json getDiff(int sock, json answerJ) {
      *  classify filenames present in both sets as "conflicts"
      *  return a json struct of that for further use
      */
-    debug(string("In getDiff(").append(std::to_string(sock)).append(")."));
+    debug(string("In doDiff(json listResponse)"));
+
     map<string, set<string>> clientMap;
     set<string> clientFilenameSet = set<string>();
     auto clientMusicDataList = list(directory);
@@ -224,7 +225,7 @@ json getDiff(int sock, json answerJ) {
     map<string, set<string>> serverMap;
     set<string> serverFilenameSet = set<string>();
 
-    auto serverFilesResponse = answerJ["response"];         //Format: [{filename: String, checksum: String}]
+    auto serverFilesResponse = listResponse["response"];         //Format: [{filename: String, checksum: String}]
     // populate serverMap and serverFilenameSet
     for (auto file: serverFilesResponse) {
         if (file.hasKey("checksum") && file.hasKey("filename")) {
@@ -245,11 +246,11 @@ json getDiff(int sock, json answerJ) {
     }
     debug("  Finished organizing server files. Comparing file checksums across client and server.");
 
-    json diffStruct = buildDiffStruct(clientMap, clientFilenameSet, serverMap, serverFilenameSet);
-    return diffStruct;
+    json diffJSON = createDiffJSON(clientMap, clientFilenameSet, serverMap, serverFilenameSet);
+    return diffJSON;
 }
 
-json buildPushRequestFromDiffStruct(const json &diffStruct) {
+json createPushRequestFromDiffJSON(const json &diffStruct) {
     json pushRequest;
     pushRequest["version"] = VERSION;
     pushRequest["type"] = JSON("pushRequest", true);
@@ -277,7 +278,7 @@ json buildPushRequestFromDiffStruct(const json &diffStruct) {
     return pushRequest;
 }
 
-json buildPullRequestFromDiffStruct(const json &diffStruct) {
+json createPullRequestFromDiffJSON(const json &diffStruct) {
     json pullRequest;
     pullRequest["version"] = VERSION;
     pullRequest["type"] = JSON("pullRequest", true);
@@ -300,18 +301,10 @@ json buildPullRequestFromDiffStruct(const json &diffStruct) {
     return pullRequest;
 }
 
-void handleGetDiff(int sock) {
-    cout << "Diff:" << endl;
-    cout << "=====================" << endl;
-    auto answerJ = getListResponse(sock);
-    if (!verifyJSONPacket(answerJ)) {
-        cout << "Unable to verify listResponse from server!" << endl;
-        return;
-    }
-
-    auto diffStruct = getDiff(sock, answerJ);
-    auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
-    auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+void printDiff(const json &diffJSON) {
+    debug("diffJSON: " + diffJSON.stringify());
+    auto pullRequest = createPullRequestFromDiffJSON(diffJSON);
+    auto pushRequest = createPushRequestFromDiffJSON(diffJSON);
 
     debug("pullRequest: " + pullRequest.stringify());
     debug("pushRequest: " + pushRequest.stringify());
@@ -328,7 +321,20 @@ void handleGetDiff(int sock) {
     cout << endl;
 }
 
-bool isResponseComplete(const json &response, json request) {
+void handleDiff(int sock) {
+    cout << "Diff:" << endl;
+    cout << "=====================" << endl;
+    auto listResponse = doList(sock);
+    if (!verifyJSONPacket(listResponse, "listResponse")) {
+        cout << "Unable to verify listResponse from server!" << endl;
+        return;
+    }
+
+    auto diffJSON = doDiff(listResponse);
+    printDiff(diffJSON);
+}
+
+bool isResponseComplete(const json &response, const json &request) {
     int numRequested = 0;
     int numReceived = 0;
     for (auto f: request["request"]) {
@@ -341,7 +347,11 @@ bool isResponseComplete(const json &response, json request) {
 }
 
 bool handlePullResponse(const json &pullResponse, const json &pullRequest) {
-    for (auto fileDatum: pullResponse) {
+    debug(string("Handling pull response").append(pullRequest.stringify()));
+    if (!verifyJSONPacket(pullResponse, "pullResponse")) {
+        return false;  // Quit early before trying to write files
+    }
+    for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
         auto dataIterable = base64Decode(fileDatum["data"].getString());
         string data = string(dataIterable.begin(), dataIterable.end());
         ofstream fileWriter(directory + fileDatum["filename"].getString());
@@ -351,23 +361,24 @@ bool handlePullResponse(const json &pullResponse, const json &pullRequest) {
     return isResponseComplete(pullResponse, pullRequest);
 }
 
-void handleDoSync(int sock) {
+void handleSync(int sock) {
     cout << "Sync:" << endl;
     cout << "=====================" << endl;
 
-    auto answerJ = getListResponse(sock);
-    if (!verifyJSONPacket(answerJ)) {
+    auto answerJ = doList(sock);
+    if (!verifyJSONPacket(answerJ, "listResponse")) {
         cout << "Unable to verify listResponse from server!" << endl;
         return;
     }
 
-    auto diffStruct = getDiff(sock, answerJ);
-    auto pullRequest = buildPullRequestFromDiffStruct(diffStruct);
-    auto pushRequest = buildPushRequestFromDiffStruct(diffStruct);
+    auto diffStruct = doDiff(answerJ);
+    auto pullRequest = createPullRequestFromDiffJSON(diffStruct);
+    auto pushRequest = createPushRequestFromDiffJSON(diffStruct);  // creates a pushRequest w/o data
 
     debug("pullRequest: " + pullRequest.stringify());
     debug("pushRequest: " + pushRequest.stringify());
 
+    // Fill in the data fields of the pushRequest
     for (auto iter : pushRequest["request"]) {
         debug(string("  Looking at file ").append((iter["filename"]).getString()));
         string path = directory + ((iter["filename"]).getString());
@@ -382,23 +393,35 @@ void handleDoSync(int sock) {
     debug("sending pushRequest");
 
     sendToSocket(sock, pushRequest);
-    json pushResponse = getResponse(sock);
+    json pushResponse = receiveResponse(sock);
 
     debug("sending pullRequest");
     sendToSocket(sock, pullRequest);
-    json pullResponse = getResponse(sock);
+    json pullResponse = receiveResponse(sock);
 
     if (!handlePullResponse(pullResponse, pullRequest) || !isResponseComplete(pushResponse, pushRequest)) {
         cout << "Incomplete sync. Consider trying again." << endl;
     }
 }
 
-void handleDoPull(int sock) {
-    sendListRequest(sock);
+json doPull(int sock) {
+    return json();
+}
+
+void printPullResponse(const json &pullResponse) {
+    cout << "Pull:" << endl;
+    cout << "=====================" << endl;
+    cout << pullResponse.stringify() << endl;
+    cout << endl;
+}
+
+void handlePull(int sock) {
+    auto pullResponse = doPull(sock);
+    printPullResponse(pullResponse);
 }
 
 void interruptHandler(int s) {
-    cleanExit(sock);
+    handleLeave(sock);
     exit(0);
 }
 
@@ -421,19 +444,19 @@ void userInteractionLoop(int sock) {
 
             switch (userChoice) {
                 case 1:
-                    handleGetListResponse(sock);
+                    handleList(sock);
                     break;
                 case 2:
-                    handleGetDiff(sock);
+                    handleDiff(sock);
                     break;
                 case 3:
-                    handleDoSync(sock);
+                    handleSync(sock);
                     break;
                 case 4:
-                    handleDoPull(sock);
+                    handlePull(sock);
                     break;
                 case 5:
-                    cleanExit(sock);
+                    handleLeave(sock);
                     return;
                 default:
                     break;

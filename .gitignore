@@ -1,3 +1,6 @@
+# Server log (hardcoded, outside of temporary directories)
+serverLog.txt
+
 # Temporary Debugging Directories
 testClientDir/*
 testServerDir/*

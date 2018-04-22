@@ -1,5 +1,5 @@
 #include "Project4Common.h"
-#include <stdint.h>
+#include <cstdint>
 
 using std::string;
 using std::vector;
@@ -71,7 +71,7 @@ json MusicData::getAsJSON(bool withData) {
     json fileJ = json();
 
     fileJ["filename"] = this->filename;
-    fileJ["checksum"] = this->checksum;
+    fileJ["checksum"] = JSON(this->checksum, true);
     if (withData) {
         fileJ["data"] = b64Encode();
     }
@@ -207,7 +207,7 @@ void sendToSocket(int socket, const json &data) {
     sendToSocket(socket, data.stringify());
 }
 
-bool verifyJSONPacket(json &data) {
+bool verifyJSONPacket(const json &data) {
     bool verified = true;
 
     verified = verified && data.isObject() && data.hasKey("version")
@@ -248,6 +248,10 @@ bool verifyJSONPacket(json &data) {
     }
 
     return false;
+}
+
+bool verifyJSONPacket(const json &data, const string &type) {
+    return verifyJSONPacket(data) && data["type"].getString() == type;
 }
 
 // base64 uses an 8-bit character to store 6 "raw" bits. 
@@ -363,4 +367,28 @@ string filenameIncrement(const string &filename, const set<string> &existingFile
     } else {
         return filename;
     }
+}
+
+string getPeerStringFromSocket(int sock) {
+    struct sockaddr_in clientSockaddr;
+    socklen_t addrLen = sizeof(clientSockaddr);
+    getpeername(sock, (sockaddr *) &clientSockaddr, &addrLen);
+    std::ostringstream clientInfo;
+    clientInfo << inet_ntoa(clientSockaddr.sin_addr) << ":";
+    clientInfo << ((int) ntohs(clientSockaddr.sin_port));
+    return clientInfo.str();
+}
+
+string prettyListFiles(const json& request) {
+    ssize_t numElements = (request["request"]).size();
+    if (numElements == 0) {
+        return "()";
+    }
+    stringstream s;
+    s << "(";
+    for (int i = 0; i < numElements - 1; ++i) {
+        s << ((request["request"])[i])["filename"].getString() << ", ";
+    }
+    s << ((request["request"])[numElements - 1])["filename"].getString() << ")";
+    return s.str();
 }
