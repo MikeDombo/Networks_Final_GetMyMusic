@@ -1,4 +1,5 @@
 #include "Project4Common.h"
+#include <assert.h>
 
 using std::string;
 using std::set;

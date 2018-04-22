@@ -18,7 +18,7 @@ all: testFiles $(EXECUTABLE)
 ################################################################################
 
 Project4Server: build/Project4Server.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
-	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Server.o build/CCRC32.o build/HappyPathJSON.o build/Message.o -o Project4Server
+	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Server.o build/CCRC32.o build/HappyPathJSON.o -o Project4Server
 
 Project4Client: build/Project4Client.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/Project4Common.o build/Project4Client.o build/CCRC32.o build/HappyPathJSON.o -o Project4Client
@@ -55,6 +55,8 @@ build/CCRC32.o: src/lib/CCRC32.cpp src/lib/CCRC32.h
 build/HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
 	$(CC) $(CFLAGS) src/HappyPathJSON.cpp -o build/HappyPathJSON.o
 
+build/JSONTest.o: src/JSONTest.cpp
+	$(CC) $(CFLAGS) src/JSONTest.cpp -o build/JSONTest.o
 
 ################################################################################
 # "Tasks" to run before or after making the executables
