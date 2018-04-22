@@ -378,3 +378,17 @@ string getPeerStringFromSocket(int sock) {
     clientInfo << ((int) ntohs(clientSockaddr.sin_port));
     return clientInfo.str();
 }
+
+string prettyListFiles(const json& request) {
+    ssize_t numElements = (request["request"]).size();
+    if (numElements == 0) {
+        return "()";
+    }
+    stringstream s;
+    s << "(";
+    for (int i = 0; i < numElements - 1; ++i) {
+        s << ((request["request"])[i])["filename"].getString() << ", ";
+    }
+    s << ((request["request"])[numElements - 1])["filename"].getString() << ")";
+    return s.str();
+}
