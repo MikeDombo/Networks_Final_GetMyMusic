@@ -11,6 +11,7 @@
 #include <cstring>     /* for memset() */
 #include <unistd.h>     /* for close() */
 #include <sys/types.h>
+#include <sys/time.h>  //FD_SET, FD_ISSET, FD_macros
 #include <netinet/in.h>
 #include <netdb.h>
 #include <vector>

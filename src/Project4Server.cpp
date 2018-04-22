@@ -94,7 +94,7 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
 }
 
 
-void handleClient(int sock, const string &directory, const string &logFilepath) {
+void handleClient(int sock, const string &directory, int client_socket[], int client_sock_close_index, const string &logFilepath) {
     auto query = receiveUntilByteEquals(sock, '\n');
     try {
         auto queryJ = json(query);  // will throw an exception if invalid JSON received
@@ -116,9 +116,11 @@ void handleClient(int sock, const string &directory, const string &logFilepath) 
             } else if (type == "pushRequest") {
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
+                cout << "Closing connection to client with sd: " << sock
+                     << " and index in arr: " << client_sock_close_index << endl;
+                client_socket[client_sock_close_index] = 0;
                 log("Client at " + getPeerStringFromSocket(sock) + " cleanly closed connection", logFilepath);
                 close(sock);
-                return;
             } else {
                 cout << "Unknown type: " << type << endl;
                 close(sock);
@@ -126,7 +128,6 @@ void handleClient(int sock, const string &directory, const string &logFilepath) 
         }
 
         // Loop
-        handleClient(sock, directory, logFilepath);
     } catch (std::exception &e) {
         log("Client at " + getPeerStringFromSocket(sock) + " unexpectedly closed connection", logFilepath);
         return;
@@ -137,6 +138,30 @@ int main(int argc, char **argv) {
     unsigned int serverPort;
     string directory = ".";
     string logFilepath = "serverLog.txt";
+
+    //Select() code
+    //------------------------------------------
+    int opt = true;
+    int master_socket, addrlen, new_socket, max_clients = 1024, client_socket[max_clients], activity, i, sd;
+    int max_sd;
+
+    //set of socket descriptors
+    fd_set readfds;
+
+    for(i = 0; i < max_clients; i++){
+        client_socket[i] = 0;
+    }
+
+    if((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0){
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    //set master socket to accept multiple connections (up to 1024)
+    if(setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0){
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    } 
 
     InputParser input(argc, argv);
     if (input.findCmdHelp()) {
@@ -163,19 +188,8 @@ int main(int argc, char **argv) {
         directory = directory + '/';
     }
 
-    // Create variables for the sockets that will be created
-    int clientSocket;
-    int serverSocket;
     // Create structs to save the server and client addresses
     struct sockaddr_in serverAddress; /* Local address */
-    struct sockaddr_in clientAddress; /* Client address */
-
-
-    /* Create socket for incoming connections */
-    if ((serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-        perror("socket () failed");
-        exit(1);
-    }
 
     /* Construct local address structure */
     memset(&serverAddress, 0, sizeof(serverAddress)); /* Zero out structure */
@@ -184,29 +198,90 @@ int main(int argc, char **argv) {
     serverAddress.sin_port = serverPort; /* Local port */
 
     /* Bind to the local address */
-    if (bind(serverSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0) {
+    if (bind(master_socket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0) {
         perror("bind() failed");
         exit(1);
     }
 
     /* Mark the socket so it will listen for incoming connections */
-    if (listen(serverSocket, 100) < 0) {
+    if (listen(master_socket, max_clients) < 0) {
         perror("listen() failed");
         exit(1);
     }
 
+    addrlen = sizeof(serverAddress);
+
     // Constantly listen for clients
     while (true) {
-        unsigned int clientLength = sizeof(clientAddress);
 
-        /* Wait for a client to connect */
-        if ((clientSocket = accept(serverSocket, (struct sockaddr *) &clientAddress, &clientLength)) < 0) {
-            perror("accept() failed");
-            exit(1);
+        //clear the socket set
+        FD_ZERO(&readfds);
+
+        //add master socket to set
+        FD_SET(master_socket, &readfds);
+        max_sd = master_socket;
+
+        //add child sockets to set
+        for(i = 0; i < max_clients; i++){
+            //socket descriptor
+            sd = client_socket[i];
+            //if the socket descriptor is valid, add it to the read list of sockets
+            if(sd > 0) FD_SET(sd, &readfds);
+
+            //find highest file descriptor number
+            if(sd > max_sd) max_sd = sd;
+            //cout << "Setting sd " << sd << " and max_sd is: " << max_sd << endl;
         }
 
-        // When a client connects, handle them using handleClient()
-        handleClient(clientSocket, directory, logFilepath);
+        activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
+
+        //cout << "select() called! " << endl;
+
+        if((activity < 0) && (errno != EINTR)){
+            printf("select() error");
+        }
+
+        //Handle incoming connection on master socket
+        if(FD_ISSET(master_socket, &readfds)){
+            if((new_socket = accept(master_socket, (struct sockaddr *) &serverAddress, (socklen_t*) &addrlen)) < 0){
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
+
+            //inform user of socket number - used in send and receive commands 
+            printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket,
+                 inet_ntoa(serverAddress.sin_addr),ntohs (serverAddress.sin_port)); 
+
+             //add new socket to array of sockets 
+            for (i = 0; i < max_clients; i++)  
+            {  
+                //if position is empty 
+                if( client_socket[i] == 0 )  
+                {  
+                    client_socket[i] = new_socket;  
+                    printf("Adding to list of sockets as %d\n" , i);  
+                        
+                    break;
+                }  
+            }
+
+            // When a client connects, handle them using handleClient()
+            handleClient(new_socket, directory, client_socket, -1, logFilepath);
+            //cout << "Finished handling client request" << endl;
+        }
+
+        //Handle IO operations on socket with incoming message
+        for (i = 0; i < max_clients; i++)  
+        {  
+            sd = client_socket[i];
+            //cout << "Iterating through socket " << sd << endl;  
+                
+            if (FD_ISSET(sd , &readfds))  
+            {  
+               //cout << "Handling client " << sd << endl;
+               handleClient(sd, directory, client_socket, i, logFilepath);
+            }  
+        }
     }
 
     return 0;
