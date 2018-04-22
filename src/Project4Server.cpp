@@ -61,18 +61,17 @@ void handleClient(int sock, const string &directory, int client_socket[], int cl
             } else if (type == "pushRequest") {
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
-                close(sock);
-                return;
-            } else {
                 cout << "Closing connection to client with sd: " << sock
-                     << "and index in arr: " << client_sock_close_index << endl;
+                     << " and index in arr: " << client_sock_close_index << endl;
                 client_socket[client_sock_close_index] = 0;
+                close(sock);
+            } else {
+                cout << "Unknown type: " << type << endl;
                 close(sock);
             }
         }
 
         // Loop
-        //handleClient(sock, directory);
     } catch (std::exception &e) {
         struct sockaddr_in clientSockaddr;
         socklen_t addrLen = sizeof(clientSockaddr);
@@ -92,7 +91,7 @@ int main(int argc, char **argv) {
     //Select() code
     //------------------------------------------
     int opt = true;
-    int master_socket, addrlen, new_socket, max_clients = 3, client_socket[max_clients], activity, i, sd;
+    int master_socket, addrlen, new_socket, max_clients = 1024, client_socket[max_clients], activity, i, sd;
     int max_sd;
 
     //set of socket descriptors
@@ -180,12 +179,12 @@ int main(int argc, char **argv) {
 
             //find highest file descriptor number
             if(sd > max_sd) max_sd = sd;
-            cout << "Setting sd " << sd << " and max_sd is: " << max_sd << endl;
+            //cout << "Setting sd " << sd << " and max_sd is: " << max_sd << endl;
         }
 
         activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
 
-        cout << "select() called! " << endl;
+        //cout << "select() called! " << endl;
 
         if((activity < 0) && (errno != EINTR)){
             printf("select() error");
@@ -217,18 +216,18 @@ int main(int argc, char **argv) {
 
             // When a client connects, handle them using handleClient()
             handleClient(new_socket, directory, client_socket, -1);
-            cout << "Finished handling client request" << endl;
+            //cout << "Finished handling client request" << endl;
         }
 
         //Handle IO operations on socket with incoming message
         for (i = 0; i < max_clients; i++)  
         {  
             sd = client_socket[i];
-            cout << "Iterating through socket " << sd << endl;  
+            //cout << "Iterating through socket " << sd << endl;  
                 
             if (FD_ISSET(sd , &readfds))  
             {  
-               cout << "Handling client " << sd << endl;
+               //cout << "Handling client " << sd << endl;
                handleClient(sd, directory, client_socket, i);
             }  
         }
