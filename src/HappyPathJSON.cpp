@@ -49,9 +49,6 @@ bool JSON::hasKey(const std::string &k) const {
 };
 
 JSON &JSON::operator[](unsigned int i) {
-    if (i < 0) {
-        throw std::out_of_range("Index is out of range");
-    }
     if (this->iArray) {
         if (i >= this->arrayEls.size()) {
             throw std::out_of_range("Index is out of range");
@@ -78,9 +75,6 @@ JSON &JSON::operator[](const std::string &s) {
 };
 
 const JSON &JSON::operator[](unsigned int i) const {
-    if (i < 0) {
-        throw std::out_of_range("Index is out of range");
-    }
     if (this->iArray) {
         if (i >= this->arrayEls.size()) {
             throw std::out_of_range("Index is out of range");
