@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Copyright © NetworkDLS 2002, All rights reserved
+//  Copyright ï¿½ NetworkDLS 2002, All rights reserved
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF 
 // ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
@@ -32,16 +32,14 @@ extern CMemPool *pMem; //pMem must be defined and initalized elsewhere.
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CCRC32::CCRC32(void)
-{
+CCRC32::CCRC32(void) {
     this->Initialize();
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CCRC32::~CCRC32(void)
-{
+CCRC32::~CCRC32(void) {
     //No destructor code.
 }
 
@@ -51,26 +49,23 @@ CCRC32::~CCRC32(void)
 		initalize the table before using any of the other CRC32 calculation functions.
 */
 
-void CCRC32::Initialize(void)
-{
-	//0x04C11DB7 is the official polynomial used by PKZip, WinZip and Ethernet.
-	unsigned int iPolynomial = 0x04C11DB7;
+void CCRC32::Initialize(void) {
+    //0x04C11DB7 is the official polynomial used by PKZip, WinZip and Ethernet.
+    unsigned int iPolynomial = 0x04C11DB7;
 
-	memset(&this->iTable, 0, sizeof(this->iTable));
+    memset(&this->iTable, 0, sizeof(this->iTable));
 
-	// 256 values representing ASCII character codes.
-	for(int iCodes = 0; iCodes <= 0xFF; iCodes++)
-	{
-		this->iTable[iCodes] = this->Reflect(iCodes, 8) << 24;
+    // 256 values representing ASCII character codes.
+    for (int iCodes = 0; iCodes <= 0xFF; iCodes++) {
+        this->iTable[iCodes] = this->Reflect(iCodes, 8) << 24;
 
-		for(int iPos = 0; iPos < 8; iPos++)
-		{
-			this->iTable[iCodes] = (this->iTable[iCodes] << 1)
-				^ ((this->iTable[iCodes] & (1 << 31)) ? iPolynomial : 0);
-		}
+        for (int iPos = 0; iPos < 8; iPos++) {
+            this->iTable[iCodes] = (this->iTable[iCodes] << 1)
+                                   ^ ((this->iTable[iCodes] & (1 << 31)) ? iPolynomial : 0);
+        }
 
-		this->iTable[iCodes] = this->Reflect(this->iTable[iCodes], 32);
-	}
+        this->iTable[iCodes] = this->Reflect(this->iTable[iCodes], 32);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,21 +74,18 @@ void CCRC32::Initialize(void)
 	You can create CRCs without it, but they won't conform to the standard.
 */
 
-unsigned int CCRC32::Reflect(unsigned int iReflect, const char cChar)
-{
-	unsigned int iValue = 0;
+unsigned int CCRC32::Reflect(unsigned int iReflect, const char cChar) {
+    unsigned int iValue = 0;
 
-	// Swap bit 0 for bit 7, bit 1 For bit 6, etc....
-	for(int iPos = 1; iPos < (cChar + 1); iPos++)
-	{
-		if(iReflect & 1)
-		{
-			iValue |= (1 << (cChar - iPos));
-		}
-		iReflect >>= 1;
-	}
+    // Swap bit 0 for bit 7, bit 1 For bit 6, etc....
+    for (int iPos = 1; iPos < (cChar + 1); iPos++) {
+        if (iReflect & 1) {
+            iValue |= (1 << (cChar - iPos));
+        }
+        iReflect >>= 1;
+    }
 
-	return iValue;
+    return iValue;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,15 +95,13 @@ unsigned int CCRC32::Reflect(unsigned int iReflect, const char cChar)
 	Note: For Example usage example, see FileCRC().
 */
 
-void CCRC32::PartialCRC(unsigned int *iCRC, const unsigned char *sData, size_t iDataLength)
-{
-	while(iDataLength--)
-	{
-		//If your compiler complains about the following line, try changing
-		//	each occurrence of *iCRC with ((unsigned int)*iCRC).
+void CCRC32::PartialCRC(unsigned int *iCRC, const unsigned char *sData, size_t iDataLength) {
+    while (iDataLength--) {
+        //If your compiler complains about the following line, try changing
+        //	each occurrence of *iCRC with ((unsigned int)*iCRC).
 
-		*iCRC = (*iCRC >> 8) ^ this->iTable[(*iCRC & 0xFF) ^ *sData++];
-	}
+        *iCRC = (*iCRC >> 8) ^ this->iTable[(*iCRC & 0xFF) ^ *sData++];
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,13 +109,12 @@ void CCRC32::PartialCRC(unsigned int *iCRC, const unsigned char *sData, size_t i
 	Returns the calculated CRC32 (through iOutCRC) for the given string.
 */
 
-void CCRC32::FullCRC(const unsigned char *sData, size_t iDataLength, unsigned int *iOutCRC)
-{
+void CCRC32::FullCRC(const unsigned char *sData, size_t iDataLength, unsigned int *iOutCRC) {
     *iOutCRC = 0xffffffff; //Initilaize the CRC.
 
-	this->PartialCRC(iOutCRC, sData, iDataLength);
+    this->PartialCRC(iOutCRC, sData, iDataLength);
 
-	*iOutCRC ^= 0xffffffff; //Finalize the CRC.
+    *iOutCRC ^= 0xffffffff; //Finalize the CRC.
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,13 +122,12 @@ void CCRC32::FullCRC(const unsigned char *sData, size_t iDataLength, unsigned in
 	Returns the calculated CRC23 for the given string.
 */
 
-unsigned int CCRC32::FullCRC(const unsigned char *sData, size_t iDataLength)
-{
+unsigned int CCRC32::FullCRC(const unsigned char *sData, size_t iDataLength) {
     unsigned int iCRC = 0xffffffff; //Initilaize the CRC.
 
-	this->PartialCRC(&iCRC, sData, iDataLength);
+    this->PartialCRC(&iCRC, sData, iDataLength);
 
-	return(iCRC ^ 0xffffffff); //Finalize the CRC and return.
+    return (iCRC ^ 0xffffffff); //Finalize the CRC and return.
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,45 +138,42 @@ unsigned int CCRC32::FullCRC(const unsigned char *sData, size_t iDataLength)
 			it has been provided for performance purposes only.
 */
 
-bool CCRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC, size_t iBufferSize)
-{
+bool CCRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC, size_t iBufferSize) {
     *iOutCRC = 0xffffffff; //Initilaize the CRC.
 
-	FILE *fSource = NULL;
-	unsigned char *sBuf = NULL;
-	size_t iBytesRead = 0;
+    FILE *fSource = NULL;
+    unsigned char *sBuf = NULL;
+    size_t iBytesRead = 0;
 
-	if((fSource = fopen(sFileName, "rb")) == NULL)
-	{
-		return false; //Failed to open file for read access.
-	}
+    if ((fSource = fopen(sFileName, "rb")) == NULL) {
+        return false; //Failed to open file for read access.
+    }
 
-	#ifdef _USE_GLOBAL_MEMPOOL
-		if(!(sBuf = (unsigned char *)pMem->Allocate(iBufferSize, 1))) //Allocate memory for file buffering.
-	#else
-		if(!(sBuf = (unsigned char *)malloc(iBufferSize))) //Allocate memory for file buffering.
-	#endif
-	{
-		fclose(fSource);
-		return false; //Out of memory.
-	}
+#ifdef _USE_GLOBAL_MEMPOOL
+    if(!(sBuf = (unsigned char *)pMem->Allocate(iBufferSize, 1))) //Allocate memory for file buffering.
+#else
+    if (!(sBuf = (unsigned char *) malloc(iBufferSize))) //Allocate memory for file buffering.
+#endif
+    {
+        fclose(fSource);
+        return false; //Out of memory.
+    }
 
-	while((iBytesRead = fread(sBuf, sizeof(char), iBufferSize, fSource)))
-	{
-		this->PartialCRC(iOutCRC, sBuf, iBytesRead);
-	}
+    while ((iBytesRead = fread(sBuf, sizeof(char), iBufferSize, fSource))) {
+        this->PartialCRC(iOutCRC, sBuf, iBytesRead);
+    }
 
-	#ifdef _USE_GLOBAL_MEMPOOL
-		pMem->Free(sBuf);
-	#else
-		free(sBuf);
-	#endif
+#ifdef _USE_GLOBAL_MEMPOOL
+    pMem->Free(sBuf);
+#else
+    free(sBuf);
+#endif
 
-	fclose(fSource);
+    fclose(fSource);
 
-	*iOutCRC ^= 0xffffffff; //Finalize the CRC.
+    *iOutCRC ^= 0xffffffff; //Finalize the CRC.
 
-	return true;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,14 +181,11 @@ bool CCRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC, size_t iBuffe
 	Calculates the CRC32 of a file using the a default buffer size of 1MB.
 */
 
-unsigned int CCRC32::FileCRC(const char *sFileName)
-{
-	unsigned int iCRC;
-	if(this->FileCRC(sFileName, &iCRC, 1048576))
-	{
-		return iCRC;
-	}
-	else return 0xffffffff; //While we return this as an error code, it is infact a valid CRC!
+unsigned int CCRC32::FileCRC(const char *sFileName) {
+    unsigned int iCRC;
+    if (this->FileCRC(sFileName, &iCRC, 1048576)) {
+        return iCRC;
+    } else return 0xffffffff; //While we return this as an error code, it is infact a valid CRC!
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -214,14 +196,11 @@ unsigned int CCRC32::FileCRC(const char *sFileName)
 			it has been provided for performance purposes only.
 */
 
-unsigned int CCRC32::FileCRC(const char *sFileName, size_t iBufferSize)
-{
-	unsigned int iCRC;
-	if(this->FileCRC(sFileName, &iCRC, iBufferSize))
-	{
-		return iCRC;
-	}
-	else return 0xffffffff; //While we return this as an error code, it is infact a valid CRC!
+unsigned int CCRC32::FileCRC(const char *sFileName, size_t iBufferSize) {
+    unsigned int iCRC;
+    if (this->FileCRC(sFileName, &iCRC, iBufferSize)) {
+        return iCRC;
+    } else return 0xffffffff; //While we return this as an error code, it is infact a valid CRC!
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,9 +208,8 @@ unsigned int CCRC32::FileCRC(const char *sFileName, size_t iBufferSize)
 	Calculates the CRC32 of a file using the a default buffer size of 1MB.
 */
 
-bool CCRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC)
-{
-	return this->FileCRC(sFileName, iOutCRC, 1048576);
+bool CCRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC) {
+    return this->FileCRC(sFileName, iOutCRC, 1048576);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

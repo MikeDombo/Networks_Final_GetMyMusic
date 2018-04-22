@@ -379,7 +379,7 @@ string getPeerStringFromSocket(int sock) {
     return clientInfo.str();
 }
 
-string prettyListFiles(const json& request) {
+string prettyListFiles(const json &request) {
     ssize_t numElements = (request["request"]).size();
     if (numElements == 0) {
         return "()";

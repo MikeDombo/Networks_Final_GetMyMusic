@@ -24,7 +24,8 @@ int main() {
     string output1 = prettyListFiles(json1);
     assert(output1 == target1);
 
-    json json2 = json("{\"request\":[{\"filename\":\"foo\",\"checksum\":\"bar\"},{\"filename\":\"foo2\",\"checksum\":\"bar2\"}]}");
+    json json2 = json(
+            "{\"request\":[{\"filename\":\"foo\",\"checksum\":\"bar\"},{\"filename\":\"foo2\",\"checksum\":\"bar2\"}]}");
     string target2 = "(foo, foo2)";
     string output2 = prettyListFiles(json2);
     assert(output2 == target2);

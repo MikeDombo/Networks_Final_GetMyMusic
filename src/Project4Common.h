@@ -117,6 +117,6 @@ std::string filenameIncrement(const std::string &filename, const std::set<std::s
 
 std::string getPeerStringFromSocket(int sock);
 
-std::string prettyListFiles(const json& request);
+std::string prettyListFiles(const json &request);
 
 #endif

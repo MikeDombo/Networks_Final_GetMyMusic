@@ -94,7 +94,8 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
 }
 
 
-void handleClient(int sock, const string &directory, int client_socket[], int client_sock_close_index, const string &logFilepath) {
+void handleClient(int sock, const string &directory, int client_socket[], int client_sock_close_index,
+                  const string &logFilepath) {
     auto query = receiveUntilByteEquals(sock, '\n');
     try {
         auto queryJ = json(query);  // will throw an exception if invalid JSON received
@@ -148,20 +149,20 @@ int main(int argc, char **argv) {
     //set of socket descriptors
     fd_set readfds;
 
-    for(i = 0; i < max_clients; i++){
+    for (i = 0; i < max_clients; i++) {
         client_socket[i] = 0;
     }
 
-    if((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0){
+    if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
 
     //set master socket to accept multiple connections (up to 1024)
-    if(setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0){
+    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
-    } 
+    }
 
     InputParser input(argc, argv);
     if (input.findCmdHelp()) {
@@ -222,14 +223,14 @@ int main(int argc, char **argv) {
         max_sd = master_socket;
 
         //add child sockets to set
-        for(i = 0; i < max_clients; i++){
+        for (i = 0; i < max_clients; i++) {
             //socket descriptor
             sd = client_socket[i];
             //if the socket descriptor is valid, add it to the read list of sockets
-            if(sd > 0) FD_SET(sd, &readfds);
+            if (sd > 0) FD_SET(sd, &readfds);
 
             //find highest file descriptor number
-            if(sd > max_sd) max_sd = sd;
+            if (sd > max_sd) max_sd = sd;
             //cout << "Setting sd " << sd << " and max_sd is: " << max_sd << endl;
         }
 
@@ -237,32 +238,30 @@ int main(int argc, char **argv) {
 
         //cout << "select() called! " << endl;
 
-        if((activity < 0) && (errno != EINTR)){
+        if ((activity < 0) && (errno != EINTR)) {
             printf("select() error");
         }
 
         //Handle incoming connection on master socket
-        if(FD_ISSET(master_socket, &readfds)){
-            if((new_socket = accept(master_socket, (struct sockaddr *) &serverAddress, (socklen_t*) &addrlen)) < 0){
+        if (FD_ISSET(master_socket, &readfds)) {
+            if ((new_socket = accept(master_socket, (struct sockaddr *) &serverAddress, (socklen_t *) &addrlen)) < 0) {
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
 
             //inform user of socket number - used in send and receive commands 
-            printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket,
-                 inet_ntoa(serverAddress.sin_addr),ntohs (serverAddress.sin_port)); 
+            printf("New connection , socket fd is %d , ip is : %s , port : %d \n", new_socket,
+                   inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
 
-             //add new socket to array of sockets 
-            for (i = 0; i < max_clients; i++)  
-            {  
+            //add new socket to array of sockets
+            for (i = 0; i < max_clients; i++) {
                 //if position is empty 
-                if( client_socket[i] == 0 )  
-                {  
-                    client_socket[i] = new_socket;  
-                    printf("Adding to list of sockets as %d\n" , i);  
-                        
+                if (client_socket[i] == 0) {
+                    client_socket[i] = new_socket;
+                    printf("Adding to list of sockets as %d\n", i);
+
                     break;
-                }  
+                }
             }
 
             // When a client connects, handle them using handleClient()
@@ -271,16 +270,14 @@ int main(int argc, char **argv) {
         }
 
         //Handle IO operations on socket with incoming message
-        for (i = 0; i < max_clients; i++)  
-        {  
+        for (i = 0; i < max_clients; i++) {
             sd = client_socket[i];
             //cout << "Iterating through socket " << sd << endl;  
-                
-            if (FD_ISSET(sd , &readfds))  
-            {  
-               //cout << "Handling client " << sd << endl;
-               handleClient(sd, directory, client_socket, i, logFilepath);
-            }  
+
+            if (FD_ISSET(sd, &readfds)) {
+                //cout << "Handling client " << sd << endl;
+                handleClient(sd, directory, client_socket, i, logFilepath);
+            }
         }
     }
 
