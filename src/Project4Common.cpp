@@ -82,10 +82,9 @@ json MusicData::getAsJSON(bool withData) {
 string MusicData::b64Encode() {
     ifstream input(this->path.c_str(), ios::binary);
     // copies all data into buffer
-    vector<char> buffer((istreambuf_iterator<char>(input)),
-                        istreambuf_iterator<char>());
+    string str((istreambuf_iterator<char>(input)), istreambuf_iterator<char>());
     // Do base64 encoding and return as a string
-    return base64Encode(buffer);
+    return base64Encode(str);
 }
 
 string MusicData::makeChecksum() {
@@ -268,8 +267,7 @@ union Bitboi {
     uint32_t i;
 };
 
-
-string base64Encode(const std::vector<char> &inputBuffer) {
+string base64Encode(const string &inputBuffer) {
     stringstream output;
     uint8_t index;
     Bitboi b;
@@ -323,10 +321,9 @@ string base64Encode(const std::vector<char> &inputBuffer) {
     return output.str();
 }
 
-vector<char> base64Decode(const string &inputString) {
+string base64Decode(const string &inputString) {
     Bitboi b;
     vector<char> result;
-    // TODO: initialize allocation to (3*((inputString.size() + 3)/4) chars
     for (size_t i = 0; i + 3 < inputString.size(); i += 4) {
         memset(&b, 0, 4);
         b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 0])] << 18;
@@ -340,7 +337,8 @@ vector<char> base64Decode(const string &inputString) {
         if (b.f.char3 != '\0')
             result.emplace_back(b.f.char3);
     }
-    return result;
+    string res(result.begin(), result.end());
+    return res;
 }
 
 // This is just so I can comment out all the debug statements at once

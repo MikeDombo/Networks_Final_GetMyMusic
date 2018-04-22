@@ -389,9 +389,9 @@ void handleSync(int sock) {
 
     debug("sending pullRequest");
     sendToSocket(sock, pullRequest);
-    json pullResponse = receiveResponse(sock);
+    PullResponse pullResponse = (PullResponse) receiveResponse(sock);
 
-    if (!handlePullResponse(pullResponse, pullRequest) || !isResponseComplete(pushResponse, pushRequest)) {
+    if (!handlePullResponse(pullResponse, (PullRequest) pullRequest) || !isResponseComplete(pushResponse, pushRequest)) {
         cout << "Incomplete sync. Consider trying again." << endl;
     }
 }

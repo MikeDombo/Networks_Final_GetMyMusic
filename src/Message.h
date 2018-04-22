@@ -53,7 +53,7 @@ class PullResponse: public Response {
 public:
     PullResponse();
     explicit PullResponse (const JSON& j);
-    void writeFiles(const std::string &directory);
+    void writeFiles(const std::string &directory) const;
 };
 
 class PushResponse: public Response {

@@ -29,8 +29,8 @@ MessageTester: build/MessageTester.o build/Project4Common.o build/CCRC32.o build
 JSONTest: build/JSONTest.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/JSONTest.o build/HappyPathJSON.o -o JSONTest
 
-Base64Tester: build/Base64Tester.o build/Project4Common.o
-	$(CC) $(LDFLAGS) build/Base64Tester.o build/Project4Common.o -o Base64Tester
+Base64Tester: build/Base64Tester.o build/Project4Common.o build/CCRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/Base64Tester.o build/CCRC32.o build/HappyPathJSON.o build/Project4Common.o -o Base64Tester
 
 
 ################################################################################
@@ -50,7 +50,7 @@ build/Project4Server.o: src/Project4Server.cpp
 	$(CC) $(CFLAGS) src/Project4Server.cpp -o build/Project4Server.o
 
 build/Base64Tester.o: src/Base64Tester.cpp
-	$(CC) $(CFLAGS) src/Base64Tester.cpp -o build/Project4Server.o
+	$(CC) $(CFLAGS) src/Base64Tester.cpp -o build/Base64Tester.o
 
 build/MessageTester.o: src/MessageTester.cpp
 	$(CC) $(CFLAGS) src/MessageTester.cpp -o build/MessageTester.o

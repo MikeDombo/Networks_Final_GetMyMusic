@@ -106,9 +106,9 @@ bool verifyJSONPacket(const json &data);
 
 bool verifyJSONPacket(const json &data, const std::string &type);
 
-std::string base64Encode(const std::vector<char> &inputBuffer);
+std::string base64Encode(const std::string &inputString);
 
-std::vector<char> base64Decode(const std::string &inputString);
+std::string base64Decode(const std::string &inputString);
 
 void debug(const std::string &debugMessage);
 

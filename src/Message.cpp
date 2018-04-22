@@ -1,5 +1,18 @@
 #include "Project4Common.h"
 
+using std::string;
+using std::vector;
+using std::ios;
+using std::stringstream;
+using std::ofstream;
+using std::cout;
+using std::endl;
+using std::cin;
+using std::hex;
+using std::exception;
+using std::set;
+using std::map;
+
 class MessageCastException: public std::exception
 {
     virtual const char* what() const throw()
@@ -89,8 +102,8 @@ PullResponse::PullResponse(const JSON& j) {
     }
 }
 
-void PullResponse::writeFiles() {
-    for (auto fileDatum: this["response"]) {  // always write as much as we can
+void PullResponse::writeFiles(const std::string &directory) const {
+    for (auto fileDatum: (*this)["response"]) {  // always write as much as we can
         auto dataIterable = base64Decode(fileDatum["data"].getString());
         string data = string(dataIterable.begin(), dataIterable.end());
         ofstream fileWriter(directory + fileDatum["filename"].getString());
