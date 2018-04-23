@@ -44,17 +44,14 @@ build/Project4Client.o: src/Project4Client.cpp
 build/Project4Server.o: src/Project4Server.cpp
 	$(CC) $(CFLAGS) src/Project4Server.cpp -o build/Project4Server.o
 
-build/Base64Tester.o: src/Base64Tester.cpp
-	$(CC) $(CFLAGS) src/Base64Tester.cpp -o build/Project4Server.o
-
 build/CRC32.o: src/lib/CRC32.cpp src/lib/CRC32.h
 	$(CC) $(CFLAGS) src/lib/CRC32.cpp -o build/CRC32.o
 
 build/HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
 	$(CC) $(CFLAGS) src/HappyPathJSON.cpp -o build/HappyPathJSON.o
 
-build/JSONTest.o: src/JSONTest.cpp
-	$(CC) $(CFLAGS) src/JSONTest.cpp -o build/JSONTest.o
+build/JSONTest.o: tests/JSONTest.cpp
+	$(CC) $(CFLAGS) tests/JSONTest.cpp -o build/JSONTest.o
 
 ################################################################################
 # "Tasks" to run before or after making the executables

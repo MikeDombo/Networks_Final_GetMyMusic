@@ -1,4 +1,4 @@
-#include "HappyPathJSON.h"
+#include "../src/HappyPathJSON.h"
 #include <iostream>
 #include <string>
 #include <iomanip>
