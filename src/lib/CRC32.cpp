@@ -5,7 +5,6 @@
 #include "CRC32.h"
 
 CRC32::CRC32() {
-    // 0x04C11DB7 is the official polynomial used by PKZip, WinZip and Ethernet.
     unsigned int iPolynomial = 0x04C11DB7;
 
     memset(&this->iTable, 0, sizeof(this->iTable));
