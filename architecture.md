@@ -229,6 +229,6 @@ The server must be able to handle multiple concurrent connections from clients. 
 - While using pthreads, the operating system has to switch between threads and this entails an overhead.
 - Multithreaded code that isn't designed properly can lead to deadlocks which are hard to debug.
 
-**select()** does not incur any of the above disadvantages. `select()` works by monitoring multiple file descriptors, and waits for a file descriptor to remain active (whether this entails a new connection or I/O being sent by a file desciptor).  
+`select()` does not incur any of the above disadvantages. `select()` works by monitoring multiple file descriptors, and waits for a file descriptor to remain active (whether this entails a new connection or I/O being sent by a file desciptor).  
 
 The server also handles the situation in which a client disconnects from the server. The file descriptor corresponding to the client is freed up so that another client can use it. 
