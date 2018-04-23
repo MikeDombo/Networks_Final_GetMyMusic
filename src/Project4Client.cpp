@@ -1,5 +1,4 @@
 #include "Project4Common.h"
-#include "lib/base64.h"
 
 using std::string;
 using std::vector;
@@ -18,7 +17,7 @@ int sock;
 string directory = ".";
 
 void printHelp(char **argv) {
-    cout << "Usage: " << *argv << " -p portNum -s serverHostOrIP [-d directory]" << endl;
+    cout << "Usage: " << *argv << " -p portNumber -s serverHostOrIP [-d directory]" << endl;
     exit(1);
 }
 

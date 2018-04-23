@@ -219,7 +219,14 @@ All messages in our protocol will share a common envelope:
 
 ## Client
 
+The client is written as a simple `while` loop that asks the user for a command, performs the command, and then goes back to the loop waiting for additional
+tasks.
+
 ## Server
+
+The server is written as a simple loop that iterates through the open file descriptors handled by `select()` and checks if there is data available.
+If there is data available, the socket is passed to a function that responds to the request and will send some sort of response.
+When the client leaves, the socket is closed.
 
 ### Multithreading
 
@@ -229,6 +236,6 @@ The server must be able to handle multiple concurrent connections from clients. 
 - While using pthreads, the operating system has to switch between threads and this entails an overhead.
 - Multithreaded code that isn't designed properly can lead to deadlocks which are hard to debug.
 
-`select()` does not incur any of the above disadvantages. `select()` works by monitoring multiple file descriptors, and waits for a file descriptor to remain active (whether this entails a new connection or I/O being sent by a file desciptor).  
+`select()` does not incur any of the above disadvantages. `select()` works by monitoring multiple file descriptors, and waits for a file descriptor to remain active (whether this entails a new connection or I/O being sent by a file descriptor).
 
 The server also handles the situation in which a client disconnects from the server. The file descriptor corresponding to the client is freed up so that another client can use it. 
