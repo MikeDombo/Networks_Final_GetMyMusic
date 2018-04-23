@@ -53,15 +53,14 @@ void doPullResponse(int sock, const string &directory, const json &pullRequest) 
 
     vector<MusicData> musicList = list(directory);
     for (auto reqItem : pullRequest["request"]) {
-        for (MusicData datum : musicList) { // O(n^2) -- big oof.
-            // TODO: make the request part of a diffstruct an associative array
-            // Or better yet, parse it into a class and give it nice class methods
+        for (MusicData datum : musicList) {
             if (datum.getFilename() == reqItem["filename"].getString() &&
                 datum.getChecksum() == reqItem["checksum"].getString()) {
                 pullResponse["response"].push(datum.getAsJSON(true));
             }
         }
     }
+    cout << pullResponse.stringify() << endl;
     sendToSocket(sock, pullResponse);
 }
 

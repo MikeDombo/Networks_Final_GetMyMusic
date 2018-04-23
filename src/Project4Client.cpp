@@ -259,20 +259,12 @@ json createPushRequestFromDiffJSON(const json &diffStruct) {
     pushRequest["request"] = emptyArr;
     if (diffStruct.hasKey("uniqueOnlyClient")) {
         for (auto file: diffStruct["uniqueOnlyClient"]) {
-            json pushDatum;
-            pushDatum["filename"] = file["filename"];
-            pushDatum["checksum"] = file["checksum"];
-            pushDatum["data"] = JSON("\"\"");
-            pushRequest["request"].push(pushDatum);
+            pushRequest["request"].push(MusicData(directory+(file["filename"].getString())).getAsJSON(true));
         }
     }
     if (diffStruct.hasKey("duplicateOnlyClient")) {
         for (auto fileish: diffStruct["duplicateOnlyClient"]) {
-            json pushDatum;
-            pushDatum["filename"] = (fileish["filenames"])[0];
-            pushDatum["checksum"] = fileish["checksum"];
-            pushDatum["data"] = JSON("\"\"");
-            pushRequest["request"].push(pushDatum);
+            pushRequest["request"].push(MusicData(directory+(fileish["filenames"][0].getString())).getAsJSON(true));
         }
     }
     return pushRequest;
@@ -335,30 +327,15 @@ void handleDiff(int sock) {
 }
 
 bool isResponseComplete(const json &response, const json &request) {
-    int numRequested = 0;
-    int numReceived = 0;
+    set<string> requestedChecksums;
+    set<string> receivedChecksums;
     for (auto f: request["request"]) {
-        ++numRequested;
+        requestedChecksums.insert(f["checksum"].getString());
     }
     for (auto f: response["response"]) {
-        ++numReceived;
+        receivedChecksums.insert(f["checksum"].getString());
     }
-    return numRequested == numReceived;
-}
-
-bool handlePullResponse(const json &pullResponse, const json &pullRequest) {
-    debug(string("Handling pull response").append(pullRequest.stringify()));
-    if (!verifyJSONPacket(pullResponse, "pullResponse")) {
-        return false;  // Quit early before trying to write files
-    }
-    for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
-        auto dataIterable = base64Decode(fileDatum["data"].getString());
-        string data = string(dataIterable.begin(), dataIterable.end());
-        ofstream fileWriter(directory + fileDatum["filename"].getString());
-        fileWriter << data;
-        fileWriter.close();
-    }
-    return isResponseComplete(pullResponse, pullRequest);
+    return requestedChecksums == receivedChecksums;
 }
 
 void handleSync(int sock) {
@@ -378,29 +355,35 @@ void handleSync(int sock) {
     debug("pullRequest: " + pullRequest.stringify());
     debug("pushRequest: " + pushRequest.stringify());
 
-    // Fill in the data fields of the pushRequest
-    for (auto iter : pushRequest["request"]) {
-        debug(string("  Looking at file ").append((iter["filename"]).getString()));
-        string path = directory + ((iter["filename"]).getString());
-        debug(string("    it has path ").append(path));
-        MusicData musicDatum(path);
-        auto jDatum = musicDatum.getAsJSON(true);
-        debug(string("    it has data ").append(jDatum["data"].getString()));
-        iter["data"] = jDatum["data"];
-    }
-
-    debug("pushRequest (modified):" + pushRequest.stringify());
-    debug("sending pushRequest");
-
     sendToSocket(sock, pushRequest);
     json pushResponse = receiveResponse(sock);
+    if(!verifyJSONPacket(pushResponse, "pushResponse")){
+        cout << "Bad packet received from server" << endl;
+        return;
+    }
+    if (!isResponseComplete(pushResponse, pushRequest)) {
+        cout << "Incomplete Push. Consider trying again." << endl;
+    }
 
     debug("sending pullRequest");
     sendToSocket(sock, pullRequest);
     json pullResponse = receiveResponse(sock);
+    debug(string("Handling pull response").append(pullResponse.stringify()));
+    if (!verifyJSONPacket(pullResponse, "pullResponse")) {
+        cout << "Bad packet received from server" << endl;
+        return;
+    }
+    if (!isResponseComplete(pullResponse, pullRequest)) {
+        cout << "Incomplete Pull. Consider trying again." << endl;
+        return; // Return here, do not write bad data
+    }
 
-    if (!handlePullResponse(pullResponse, pullRequest) || !isResponseComplete(pushResponse, pushRequest)) {
-        cout << "Incomplete sync. Consider trying again." << endl;
+    for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
+        auto dataIterable = base64Decode(fileDatum["data"].getString());
+        string data = string(dataIterable.begin(), dataIterable.end());
+        ofstream fileWriter(directory + fileDatum["filename"].getString());
+        fileWriter << data;
+        fileWriter.close();
     }
 }
 
