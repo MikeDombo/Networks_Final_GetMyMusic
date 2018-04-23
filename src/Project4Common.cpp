@@ -1,5 +1,6 @@
 #include "Project4Common.h"
 #include <cstdint>
+#include "lib/base64.h"
 
 using std::string;
 using std::vector;
@@ -340,6 +341,16 @@ vector<char> base64Decode(const string &inputString) {
             result.emplace_back(b.f.char3);
     }
     return result;
+}
+
+void writeBase64ToFile(const std::string &path, const std::string &data){
+    std::string* outString = new string();
+    Base64::Decode(data, outString);
+    std::ofstream fileWriter(path, std::ios::binary);
+    for(auto d : *outString) {
+        fileWriter.write(&d, sizeof(char));
+    }
+    fileWriter.close();
 }
 
 // This is just so I can comment out all the debug statements at once

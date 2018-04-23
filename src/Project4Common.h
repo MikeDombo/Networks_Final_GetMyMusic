@@ -119,4 +119,6 @@ std::string getPeerStringFromSocket(int sock);
 
 std::string prettyListFiles(const json &request);
 
+void writeBase64ToFile(const std::string &path, const std::string &data);
+
 #endif

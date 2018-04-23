@@ -79,11 +79,8 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
     }
     for (auto file : pushRequest["request"]) {
         string newname = filenameIncrement(file["filename"].getString(), filenames);
-        auto dataIterable = base64Decode(file["data"].getString());
-        string data = string(dataIterable.begin(), dataIterable.end());
-        std::ofstream fileWriter(directory + newname);
-        fileWriter << data;
-        fileWriter.close();
+        writeBase64ToFile(directory + newname, file["data"].getString());
+
         json fileResp;
         fileResp["filename"] = file["filename"];
         fileResp["checksum"] = file["checksum"];

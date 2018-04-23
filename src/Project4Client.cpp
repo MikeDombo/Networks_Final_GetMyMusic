@@ -1,4 +1,5 @@
 #include "Project4Common.h"
+#include "lib/base64.h"
 
 using std::string;
 using std::vector;
@@ -379,11 +380,7 @@ void handleSync(int sock) {
     }
 
     for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
-        auto dataIterable = base64Decode(fileDatum["data"].getString());
-        string data = string(dataIterable.begin(), dataIterable.end());
-        ofstream fileWriter(directory + fileDatum["filename"].getString());
-        fileWriter << data;
-        fileWriter.close();
+        writeBase64ToFile(directory + fileDatum["filename"].getString(), fileDatum["data"].getString());
     }
 }
 
