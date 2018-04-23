@@ -109,7 +109,7 @@ bool verifyJSONPacket(const json &data, const std::string &type);
 
 std::string base64Encode(const std::vector<char> &inputBuffer);
 
-std::vector<char> base64Decode(const std::string &inputString);
+std::string base64Decode(const std::string &inputString);
 
 std::string filenameIncrement(const std::string &filename, const std::set<std::string> &existingFilenames);
 

@@ -7,6 +7,7 @@ using std::vector;
 using std::ios;
 using std::stringstream;
 using std::ifstream;
+using std::ofstream;
 using std::istreambuf_iterator;
 using std::istringstream;
 using std::cout;
@@ -30,9 +31,7 @@ int main() {
 }
 
 void testBase64EncodingBinaryFile() {
-
-    // 2. Equivalent conversions for binary file
-    cout << "Testing conversion of \"" << "blob.binary" << "\":" << endl;
+    cout << "  Testing conversion of \"" << "blob.binary" << "\":" << endl;
 
     ifstream input("testServerDir/blob.binary", ios::binary);
     // copies all data into buffer
@@ -50,7 +49,7 @@ void testBase64EncodingBinaryFile() {
 
 void testBase64EncodingHappyString() {
     string simpleString = "lalala happy string";
-    cout << "Testing conversion of \"" << simpleString << "\":" << endl;
+    cout << "  Testing conversion of \"" << simpleString << "\":" << endl;
 
     string target;
     Base64::Encode(simpleString, &target);
@@ -65,12 +64,59 @@ void testBase64EncodingHappyString() {
 }
 
 void testBase64Encoding() {
+    cout << "Testing Base64 Encoding" << endl;
     // 1. Equivalent encodings of ASCII string
     testBase64EncodingHappyString();
     // 2. Equivalent encodings of a binary file
     testBase64EncodingBinaryFile();
 }
 
-void testBase64Decoding() {
+void testBase64DecodingHappyString() {
+    cout << "  Testing decoding to binary file " << endl;
 
+    string filepath = "testServerDir/blob.binary";
+    ifstream inputStream(filepath, ios::binary);
+    // copies all data into buffer
+    vector<char> buffer((istreambuf_iterator<char>(inputStream)),
+                        istreambuf_iterator<char>());
+    string inputString(buffer.begin(), buffer.end());
+    string realEncoding;
+    Base64::Encode(inputString, &realEncoding);
+    cout << "    Target Output: \"" << realEncoding << "\"" << endl;
+
+    string realDecoding;
+    Base64::Decode(realEncoding, &realDecoding);
+    assert(realDecoding == inputString);
+    cout << "    Target output: " << realDecoding << endl;
+    string myDecoding = base64Decode(realEncoding);
+    cout << "    Actual output: " << myDecoding << endl;
+    assert(myDecoding == realDecoding);
+
+    string outputFilepath = "testClientDir/blob.binary";
+    ofstream outputStream;
+    outputStream.open(outputFilepath, std::ios::binary | std::ios::trunc);
+    outputStream << realDecoding;
+    outputStream.close();
+    MusicData inputDatum(filepath);
+    MusicData outputDatum(outputFilepath);
+    assert(inputDatum.getChecksum() == outputDatum.getChecksum());
+}
+
+void testBase64DecodingBinaryFile() {
+    string simpleString = "lalala happy string";
+    cout << "  Testing decoding to binary file" << endl;
+    string realEncoding;
+    Base64::Encode(simpleString, &realEncoding);
+    string realDecoding;
+    Base64::Decode(realEncoding, &realDecoding);
+    assert(realDecoding == simpleString);
+    cout << "    Target output: " << realDecoding << endl;
+    string myDecoding = base64Decode(realEncoding);
+    cout << "    Actual output: " << myDecoding << endl;
+}
+
+void testBase64Decoding() {
+    cout << "Testing Base64 Decoding" << endl;
+    testBase64DecodingHappyString();
+    testBase64DecodingBinaryFile();
 }

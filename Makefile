@@ -76,7 +76,7 @@ client: testFiles Project4Client
 server: testFiles Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
 
-tester: MessageTester Base64Tester
+tester: testFiles MessageTester Base64Tester
 	@./MessageTester
 	@./Base64Tester
 

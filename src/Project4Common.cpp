@@ -328,13 +328,13 @@ inline void fourByteToThreeByte(unsigned char *a3, const unsigned char *a4) {
     a3[2] = static_cast<unsigned char>(((a4[2] & 0x3) << 6) + a4[3]);
 }
 
-vector<char> base64Decode(const string &inputString) {
-    vector<char> result;
+string base64Decode(const string &inputString) {
+    vector<char> resultVector;
 
     int fourByteCounter = 0;
     unsigned char a4[4];
 
-    for (auto c : inputString) {
+    for (char c : inputString) {
         if (c == '=') {
             break;
         }
@@ -349,7 +349,7 @@ vector<char> base64Decode(const string &inputString) {
             unsigned char a3[3];
             fourByteToThreeByte(a3, a4);
             for (int j = 0; j < 3; j++) {
-                result.emplace_back(a3[j]);
+                resultVector.emplace_back(a3[j]);
             }
 
             fourByteCounter = 0;
@@ -371,15 +371,14 @@ vector<char> base64Decode(const string &inputString) {
         unsigned char a3[3];
         fourByteToThreeByte(a3, a4);
         for (int j = 0; j < fourByteCounter - 1; j++) {
-            result.emplace_back(a3[j]);
+            resultVector.emplace_back(a3[j]);
         }
     }
-
-    return result;
+    return string(resultVector.begin(), resultVector.end());
 }
 
 void writeBase64ToFile(const std::string &path, const std::string &data) {
-    auto outString = base64Decode(data);
+    string outString = base64Decode(data);
     std::ofstream fileWriter(path, std::ios::binary);
     for (auto d : outString) {
         fileWriter.write(&d, sizeof(char));
