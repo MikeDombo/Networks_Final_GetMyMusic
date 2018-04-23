@@ -1,6 +1,5 @@
 #include "Project4Common.h"
 #include <cstdint>
-#include "lib/base64.h"
 
 using std::string;
 using std::vector;
