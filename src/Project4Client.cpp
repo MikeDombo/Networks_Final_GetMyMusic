@@ -132,9 +132,8 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
         string cCsum = iter->first;
         set<string> cFnames = iter->second;
         set<string> tmpFnames;
-        debug(string("  Looking at client file(s) with checksum ").append(cCsum));
+
         if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
-            debug("    Found matching file(s) on server.");
             json duplB;
             duplB["checksum"] = JSON(cCsum, true);
             duplB["clientFilenames"] = setToJsonList(cFnames);
@@ -142,7 +141,6 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             duplB["serverFilenames"] = setToJsonList(tmpFnames);
             diffJSON["duplicateBothClientServer"].push(duplB);
         } else if (cFnames.size() > 1) {
-            debug("    Found multiple files matching the checksum, only on the client");
             json duplC;
             duplC["checksum"] = JSON(cCsum, true);
             duplC["filenames"] = setToJsonList(cFnames);
@@ -151,7 +149,6 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             string firstFname = (duplC["filenames"])[0].getString();
             considerFileConflict(diffJSON, firstFname, serverFilenameSet, true);
         } else {                                              // file is unique on client
-            debug("    Only 1 file matches the checksum, on client");
             json uniqueC;
             uniqueC["checksum"] = JSON(cCsum, true);
             string fname = *(cFnames.begin());
@@ -160,18 +157,14 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             considerFileConflict(diffJSON, fname, serverFilenameSet, true);
         }
     }
-    debug("  Finished iterating through client checksums. Iterating through server checksums.");
 
     // iterate through serverMap, classifying checksums
     for (auto iter = serverMap.begin(); iter != serverMap.end(); ++iter) {
         string sCsum = iter->first;
         set<string> sFnames = iter->second;
-        debug(string("  Looking at server file(s) with checksum ").append(sCsum));
         if (clientMap.find(sCsum) != clientMap.end()) {     // if the client also has a file w/that checksum
-            debug("    Found matching file(s) on client");
             continue;  // because we've already handled it
         } else if (sFnames.size() > 1) {
-            debug("    Found multiple files matching the checksum, only on the server.");
             json duplS;
             duplS["checksum"] = JSON(sCsum, true);  // true = please wrap in QUOTATION marks
             duplS["filenames"] = setToJsonList(sFnames);
@@ -180,7 +173,6 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             string firstFname = (duplS["filenames"])[0].getString();
             considerFileConflict(diffJSON, firstFname, clientFilenameSet, false);
         } else {                                              // file is unique on server
-            debug("    Only 1 file matches the checksum, on server");
             json uniqueS;
             uniqueS["checksum"] = JSON(sCsum, true);
             string fname = *(sFnames.begin());
@@ -201,7 +193,6 @@ json doDiff(json listResponse) {
      *  classify filenames present in both sets as "conflicts"
      *  return a json struct of that for further use
      */
-    debug(string("In doDiff(json listResponse)"));
 
     map<string, set<string>> clientMap;
     set<string> clientFilenameSet = set<string>();
@@ -211,7 +202,7 @@ json doDiff(json listResponse) {
     for (auto musicDatum: clientMusicDataList) {
         string cFname = musicDatum.getFilename();
         string cCsum = musicDatum.getChecksum();
-        debug(string("  Looking at client file ").append(cFname).append(" with checksum ").append(cCsum));
+
         clientFilenameSet.insert(cFname);                // add filename (guaranteed unique locally) to set
         //Build the client map
         if (clientMap.find(cCsum) == clientMap.end()) {     // if new checksum, add a new map entry
@@ -233,7 +224,6 @@ json doDiff(json listResponse) {
             string sFname = file["filename"].getString();
             string sCsum = file["checksum"].getString();
             serverFilenameSet.insert(sFname); // add filename (guaranteed unique locally) to set
-            debug(string("  Looking at server file ").append(sFname).append(" with checksum ").append(sCsum));
 
             // If the checksum isn't in the map, then create a new set and map checksum to set
             if (serverMap.find(sCsum) == serverMap.end()) {
@@ -245,7 +235,6 @@ json doDiff(json listResponse) {
             }
         }
     }
-    debug("  Finished organizing server files. Comparing file checksums across client and server.");
 
     json diffJSON = createDiffJSON(clientMap, clientFilenameSet, serverMap, serverFilenameSet);
     return diffJSON;
@@ -295,12 +284,8 @@ json createPullRequestFromDiffJSON(const json &diffStruct) {
 }
 
 void printDiff(const json &diffJSON) {
-    debug("diffJSON: " + diffJSON.stringify());
     auto pullRequest = createPullRequestFromDiffJSON(diffJSON);
     auto pushRequest = createPushRequestFromDiffJSON(diffJSON);
-
-    debug("pullRequest: " + pullRequest.stringify());
-    debug("pushRequest: " + pushRequest.stringify());
 
     cout << "On Server but not on Client:" << endl;
     for (auto file: pullRequest["request"]) {
@@ -353,9 +338,6 @@ void handleSync(int sock) {
     auto pullRequest = createPullRequestFromDiffJSON(diffStruct);
     auto pushRequest = createPushRequestFromDiffJSON(diffStruct);  // creates a pushRequest w/o data
 
-    debug("pullRequest: " + pullRequest.stringify());
-    debug("pushRequest: " + pushRequest.stringify());
-
     sendToSocket(sock, pushRequest);
     json pushResponse = receiveResponse(sock);
     if(!verifyJSONPacket(pushResponse, "pushResponse")){
@@ -366,10 +348,8 @@ void handleSync(int sock) {
         cout << "Incomplete Push. Consider trying again." << endl;
     }
 
-    debug("sending pullRequest");
     sendToSocket(sock, pullRequest);
     json pullResponse = receiveResponse(sock);
-    debug(string("Handling pull response").append(pullResponse.stringify()));
     if (!verifyJSONPacket(pullResponse, "pullResponse")) {
         cout << "Bad packet received from server" << endl;
         return;

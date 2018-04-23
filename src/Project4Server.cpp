@@ -22,7 +22,6 @@ void log(const string &logMessage, const string &logFilepath) {
     timeStr[strlen(timeStr) - 1] = '\0';  // drop trailing newline
     stringstream outputMsg;
     outputMsg << "LOG: (Time: " << timeStr << ") " << logMessage << endl;
-    debug(outputMsg.str());
     ofstream fileWriter(logFilepath, std::ofstream::out | std::ofstream::app);  // append to log file if it exists
     fileWriter << outputMsg.str();
     fileWriter.close();
@@ -60,7 +59,7 @@ void doPullResponse(int sock, const string &directory, const json &pullRequest) 
             }
         }
     }
-    cout << pullResponse.stringify() << endl;
+
     sendToSocket(sock, pullResponse);
 }
 
@@ -95,7 +94,6 @@ void handleClient(int sock, const string &directory, int client_socket[], int cl
     auto query = receiveUntilByteEquals(sock, '\n');
     try {
         auto queryJ = json(query);  // will throw an exception if invalid JSON received
-        debug("Received: " + queryJ.stringify());
 
         if (verifyJSONPacket(queryJ)) {
             string type = queryJ["type"].getString();

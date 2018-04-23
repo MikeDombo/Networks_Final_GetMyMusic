@@ -389,11 +389,6 @@ void writeBase64ToFile(const std::string &path, const std::string &data) {
     fileWriter.close();
 }
 
-// This is just so I can comment out all the debug statements at once
-void debug(const std::string &debugMessage) {
-    std::cout << debugMessage << std::endl;
-}
-
 string filenameIncrement(const string &filename, const set<string> &existingFilenames) {
     if (existingFilenames.find(filename) != existingFilenames.end()) {
         string res(filename);

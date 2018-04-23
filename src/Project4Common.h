@@ -111,8 +111,6 @@ std::string base64Encode(const std::vector<char> &inputBuffer);
 
 std::vector<char> base64Decode(const std::string &inputString);
 
-void debug(const std::string &debugMessage);
-
 std::string filenameIncrement(const std::string &filename, const std::set<std::string> &existingFilenames);
 
 std::string getPeerStringFromSocket(int sock);
