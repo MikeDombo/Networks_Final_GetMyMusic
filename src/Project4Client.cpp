@@ -404,22 +404,6 @@ void handleSync(int sock) {
     }
 }
 
-json doPull(int sock) {
-    return json();
-}
-
-void printPullResponse(const json &pullResponse) {
-    cout << "Pull:" << endl;
-    cout << "=====================" << endl;
-    cout << pullResponse.stringify() << endl;
-    cout << endl;
-}
-
-void handlePull(int sock) {
-    auto pullResponse = doPull(sock);
-    printPullResponse(pullResponse);
-}
-
 void interruptHandler(int s) {
     handleLeave(sock);
     exit(0);
@@ -430,8 +414,7 @@ void userInteractionLoop(int sock) {
     cout << "[1]\tList files on server" << endl;
     cout << "[2]\tDiff files on server compared to local files" << endl;
     cout << "[3]\tSync files from server to local" << endl;
-    cout << "[4]\tPull single file from server to local" << endl;
-    cout << "[5]\tExit" << endl << endl;
+    cout << "[4]\tExit" << endl << endl;
 
     string userInput;
     getline(cin, userInput);
@@ -453,9 +436,6 @@ void userInteractionLoop(int sock) {
                     handleSync(sock);
                     break;
                 case 4:
-                    handlePull(sock);
-                    break;
-                case 5:
                     handleLeave(sock);
                     return;
                 default:
