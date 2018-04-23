@@ -359,8 +359,20 @@ void handleSync(int sock) {
         return; // Return here, do not write bad data
     }
 
+    auto filepaths = directoryFileListing(directory);
+    set<string> filenames;
+    for (string path : filepaths) {
+        filenames.insert(getFilename(path));
+    }
     for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
-        writeBase64ToFile(directory + fileDatum["filename"].getString(), fileDatum["data"].getString());
+        string filename = directory + filenameIncrement(fileDatum["filename"].getString(), filenames);
+        writeBase64ToFile(filename, fileDatum["data"].getString());
+        MusicData d(filename);
+        if(d.getChecksum() != fileDatum["checksum"].getString()){
+            std::cerr << "Checksum mismatch, probable write or decode error" << endl;
+            // Delete the file
+            remove(filename.c_str());
+        }
     }
 }
 

@@ -77,13 +77,16 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
         filenames.insert(getFilename(path));
     }
     for (auto file : pushRequest["request"]) {
-        string newname = filenameIncrement(file["filename"].getString(), filenames);
-        writeBase64ToFile(directory + newname, file["data"].getString());
+        string filename = directory + filenameIncrement(file["filename"].getString(), filenames);
+        writeBase64ToFile(filename, file["data"].getString());
+        MusicData d(filename);
+        if(d.getChecksum() != file["checksum"].getString()){
+            std::cerr << "Checksum mismatch, probable write or decode error" << endl;
+            // Delete the file
+            remove(filename.c_str());
+        }
 
-        json fileResp;
-        fileResp["filename"] = file["filename"];
-        fileResp["checksum"] = file["checksum"];
-        pushResponse["response"].push(fileResp);
+        pushResponse["response"].push(d.getAsJSON(false));
     }
     sendToSocket(sock, pushResponse);
 }
