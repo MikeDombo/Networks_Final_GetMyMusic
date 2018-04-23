@@ -79,7 +79,7 @@ json doList(int sock) {
 
 void handleList(int sock) {
     auto answerJ = doList(sock);
-    if (verifyJSONPacket(answerJ)) {
+    if (verifyJSONPacket(answerJ, "listResponse")) {
         auto responses = answerJ["response"];
         cout << "Server Files Listing:" << endl
              << "=====================" << endl;
@@ -134,14 +134,14 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
 
         if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
             json duplB;
-            duplB["checksum"] = JSON(cCsum, true);
+            duplB["checksum"] = cCsum;
             duplB["clientFilenames"] = setToJsonList(cFnames);
             tmpFnames = serverMap.at(cCsum);
             duplB["serverFilenames"] = setToJsonList(tmpFnames);
             diffJSON["duplicateBothClientServer"].push(duplB);
         } else if (cFnames.size() > 1) {
             json duplC;
-            duplC["checksum"] = JSON(cCsum, true);
+            duplC["checksum"] = cCsum;
             duplC["filenames"] = setToJsonList(cFnames);
             diffJSON["duplicateOnlyClient"].push(duplC);
             // if the lexicographically first duplicate filename on the client is also in serverFilenames, we have a conflict.
@@ -149,9 +149,9 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             considerFileConflict(diffJSON, firstFname, serverFilenameSet, true);
         } else {                                              // file is unique on client
             json uniqueC;
-            uniqueC["checksum"] = JSON(cCsum, true);
+            uniqueC["checksum"] = cCsum;
             string fname = *(cFnames.begin());
-            uniqueC["filename"] = JSON(fname, true);
+            uniqueC["filename"] = fname;
             diffJSON["uniqueOnlyClient"].push(uniqueC);
             considerFileConflict(diffJSON, fname, serverFilenameSet, true);
         }
@@ -165,7 +165,7 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             continue;  // because we've already handled it
         } else if (sFnames.size() > 1) {
             json duplS;
-            duplS["checksum"] = JSON(sCsum, true);  // true = please wrap in QUOTATION marks
+            duplS["checksum"] = sCsum;
             duplS["filenames"] = setToJsonList(sFnames);
             diffJSON["duplicateOnlyServer"].push(duplS);
             // if the lexicographically first duplicate filename on the server is also in clientFilenames, we have a conflict.
@@ -173,9 +173,9 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             considerFileConflict(diffJSON, firstFname, clientFilenameSet, false);
         } else {                                              // file is unique on server
             json uniqueS;
-            uniqueS["checksum"] = JSON(sCsum, true);
+            uniqueS["checksum"] = sCsum;
             string fname = *(sFnames.begin());
-            uniqueS["filename"] = JSON(fname, true);
+            uniqueS["filename"] = fname;
             diffJSON["uniqueOnlyServer"].push(uniqueS);
             considerFileConflict(diffJSON, fname, clientFilenameSet, false);
         }
