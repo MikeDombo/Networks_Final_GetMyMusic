@@ -30,6 +30,12 @@ Project4Client: build/Project4Client.o build/Project4Common.o build/CRC32.o buil
 JSONTest: build/JSONTest.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/JSONTest.o build/HappyPathJSON.o -o JSONTest
 
+MessageTester: build/MessageTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/MessageTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o MessageTester
+
+Base64Tester: build/Base64Tester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/Base64Tester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o Base64Tester
+
 
 ################################################################################
 # Object Files
@@ -53,6 +59,13 @@ build/HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
 build/JSONTest.o: tests/JSONTest.cpp
 	$(CC) $(CFLAGS) tests/JSONTest.cpp -o build/JSONTest.o
 
+build/MessageTester.o: tests/MessageTester.cpp
+	$(CC) $(CFLAGS) tests/MessageTester.cpp -o build/MessageTester.o
+
+build/Base64Tester.o: tests/Base64Tester.cpp
+	$(CC) $(CFLAGS) tests/Base64Tester.cpp -o build/Base64Tester.o
+
+
 ################################################################################
 # "Tasks" to run before or after making the executables
 ################################################################################
@@ -62,6 +75,10 @@ client: testFiles Project4Client
 
 server: testFiles Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
+
+tester: MessageTester Base64Tester
+	@./MessageTester
+	@./Base64Tester
 
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
