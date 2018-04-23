@@ -37,7 +37,7 @@ void doListResponse(int sock, const string &directory) {
 
     json listResponsePacket;
     listResponsePacket["version"] = VERSION;
-    listResponsePacket["type"] = string("listResponse");
+    listResponsePacket["type"] = JSON("listResponse", true);
     listResponsePacket["response"] = jsonFiles;
     sendToSocket(sock, listResponsePacket);
 }
@@ -107,10 +107,10 @@ void handleClient(int sock, const string &directory, int client_socket[], int cl
                 doListResponse(sock, directory);
             } else if (type == "pullRequest") {
                 log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
-                        string(" requested to pull files: (TODO)")), logFilepath);
+                        string(" requested to pull files")), logFilepath);
                 doPullResponse(sock, directory, queryJ);
                 log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
-                        string(" requested to send some files: (TODO)")), logFilepath);
+                        string(" requested to send some files")), logFilepath);
             } else if (type == "pushRequest") {
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
@@ -140,13 +140,14 @@ int main(int argc, char **argv) {
     // Select() code
     // ------------------------------------------
     int opt = true;
-    int master_socket, addrlen, new_socket, max_clients = 1024, client_socket[max_clients], activity, i, sd;
-    int max_sd;
+    const int max_clients = 1024;
+    int master_socket;
+    int client_socket[max_clients];
 
     // set of socket descriptors
     fd_set readfds;
 
-    for (i = 0; i < max_clients; i++) {
+    for (int i = 0; i < max_clients; i++) {
         client_socket[i] = 0;
     }
 
@@ -207,7 +208,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    addrlen = sizeof(serverAddress);
+    int addrlen = sizeof(serverAddress);
 
     // Constantly listen for clients
     while (true) {
@@ -217,27 +218,30 @@ int main(int argc, char **argv) {
 
         // add master socket to set
         FD_SET(master_socket, &readfds);
-        max_sd = master_socket;
+        int max_sd = master_socket;
 
         // add child sockets to set
-        for (i = 0; i < max_clients; i++) {
+        for (int i = 0; i < max_clients; i++) {
             // socket descriptor
-            sd = client_socket[i];
+            int sd = client_socket[i];
             // if the socket descriptor is valid, add it to the read list of sockets
-            if (sd > 0) FD_SET(sd, &readfds);
+            if (sd > 0){
+                FD_SET(sd, &readfds);
+            }
 
             // find highest file descriptor number
-            if (sd > max_sd) max_sd = sd;
+            if (sd > max_sd){
+                max_sd = sd;
+            }
         }
 
-        activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
-
-        if ((activity < 0) && (errno != EINTR)) {
+        if ((select(max_sd + 1, &readfds, NULL, NULL, NULL) < 0) && (errno != EINTR)) {
             printf("select() error");
         }
 
         // Handle incoming connection on master socket
         if (FD_ISSET(master_socket, &readfds)) {
+            int new_socket;
             if ((new_socket = accept(master_socket, (struct sockaddr *) &serverAddress, (socklen_t *) &addrlen)) < 0) {
                 perror("accept");
                 exit(EXIT_FAILURE);
@@ -248,7 +252,7 @@ int main(int argc, char **argv) {
                    inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
 
             // add new socket to array of sockets
-            for (i = 0; i < max_clients; i++) {
+            for (int i = 0; i < max_clients; i++) {
                 // if position is empty
                 if (client_socket[i] == 0) {
                     client_socket[i] = new_socket;
@@ -260,8 +264,8 @@ int main(int argc, char **argv) {
         }
 
         // Handle IO operations on socket with incoming message
-        for (i = 0; i < max_clients; i++) {
-            sd = client_socket[i];
+        for (int i = 0; i < max_clients; i++) {
+            int sd = client_socket[i];
 
             if (FD_ISSET(sd, &readfds)) {
                 handleClient(sd, directory, client_socket, i, logFilepath);
