@@ -379,8 +379,6 @@ vector<char> base64Decode(const string &inputString) {
 }
 
 void writeBase64ToFile(const std::string &path, const std::string &data) {
-    // std::string* outString = new string();
-    // Base64::Decode(data, outString);
     auto outString = base64Decode(data);
     std::ofstream fileWriter(path, std::ios::binary);
     for (auto d : outString) {

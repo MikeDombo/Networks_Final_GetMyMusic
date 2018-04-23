@@ -36,10 +36,10 @@ json buildPullRequestFromDiffStruct(json diffStruct);
 json buildPushRequestFromDiffStruct(json diffStruct);
 
 int main() {
-    //testBase64Encoding();
-    //testBase64EncodingHappyString();
-    //testFilenameIncrement();
-    //testBuildDiffStruct();
+    // testBase64Encoding();
+    // testBase64EncodingHappyString();
+    // testFilenameIncrement();
+    // testBuildDiffStruct();
     testBuildPushPull();
     return 0;
 }

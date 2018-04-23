@@ -204,7 +204,7 @@ json doDiff(json listResponse) {
         string cCsum = musicDatum.getChecksum();
 
         clientFilenameSet.insert(cFname);                // add filename (guaranteed unique locally) to set
-        //Build the client map
+        // Build the client map
         if (clientMap.find(cCsum) == clientMap.end()) {     // if new checksum, add a new map entry
             set<string> fnames;
             fnames.insert(cFname);
@@ -217,7 +217,7 @@ json doDiff(json listResponse) {
     map<string, set<string>> serverMap;
     set<string> serverFilenameSet = set<string>();
 
-    auto serverFilesResponse = listResponse["response"];         //Format: [{filename: String, checksum: String}]
+    auto serverFilesResponse = listResponse["response"];         // Format: [{filename: String, checksum: String}]
     // populate serverMap and serverFilenameSet
     for (auto file: serverFilesResponse) {
         if (file.hasKey("checksum") && file.hasKey("filename")) {

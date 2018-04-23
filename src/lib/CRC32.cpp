@@ -5,7 +5,7 @@
 #include "CRC32.h"
 
 CRC32::CRC32() {
-    //0x04C11DB7 is the official polynomial used by PKZip, WinZip and Ethernet.
+    // 0x04C11DB7 is the official polynomial used by PKZip, WinZip and Ethernet.
     unsigned int iPolynomial = 0x04C11DB7;
 
     memset(&this->iTable, 0, sizeof(this->iTable));
@@ -52,13 +52,13 @@ bool CRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC, size_t iBuffer
     size_t iBytesRead = 0;
 
     if ((fSource = fopen(sFileName, "rb")) == nullptr) {
-        return false; //Failed to open file for read access
+        return false; // Failed to open file for read access
     }
 
-    //Allocate memory for file buffering
+    // Allocate memory for file buffering
     if (!(sBuf = (unsigned char *) malloc(iBufferSize))) {
         fclose(fSource);
-        return false; //Out of memory.
+        return false; // Out of memory.
     }
 
     while ((iBytesRead = fread(sBuf, sizeof(char), iBufferSize, fSource))) {
@@ -67,7 +67,7 @@ bool CRC32::FileCRC(const char *sFileName, unsigned int *iOutCRC, size_t iBuffer
 
     free(sBuf);
     fclose(fSource);
-    *iOutCRC ^= 0xffffffff; //Finalize the CRC.
+    *iOutCRC ^= 0xffffffff; // Finalize the CRC.
 
     return true;
 }

@@ -137,13 +137,13 @@ int main(int argc, char **argv) {
     string directory = ".";
     string logFilepath = "serverLog.txt";
 
-    //Select() code
-    //------------------------------------------
+    // Select() code
+    // ------------------------------------------
     int opt = true;
     int master_socket, addrlen, new_socket, max_clients = 1024, client_socket[max_clients], activity, i, sd;
     int max_sd;
 
-    //set of socket descriptors
+    // set of socket descriptors
     fd_set readfds;
 
     for (i = 0; i < max_clients; i++) {
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    //set master socket to accept multiple connections (up to 1024)
+    // set master socket to accept multiple connections (up to 1024)
     if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
@@ -212,21 +212,21 @@ int main(int argc, char **argv) {
     // Constantly listen for clients
     while (true) {
 
-        //clear the socket set
+        // clear the socket set
         FD_ZERO(&readfds);
 
-        //add master socket to set
+        // add master socket to set
         FD_SET(master_socket, &readfds);
         max_sd = master_socket;
 
-        //add child sockets to set
+        // add child sockets to set
         for (i = 0; i < max_clients; i++) {
-            //socket descriptor
+            // socket descriptor
             sd = client_socket[i];
-            //if the socket descriptor is valid, add it to the read list of sockets
+            // if the socket descriptor is valid, add it to the read list of sockets
             if (sd > 0) FD_SET(sd, &readfds);
 
-            //find highest file descriptor number
+            // find highest file descriptor number
             if (sd > max_sd) max_sd = sd;
         }
 
@@ -236,20 +236,20 @@ int main(int argc, char **argv) {
             printf("select() error");
         }
 
-        //Handle incoming connection on master socket
+        // Handle incoming connection on master socket
         if (FD_ISSET(master_socket, &readfds)) {
             if ((new_socket = accept(master_socket, (struct sockaddr *) &serverAddress, (socklen_t *) &addrlen)) < 0) {
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
 
-            //inform user of socket number - used in send and receive commands 
+            // inform user of socket number - used in send and receive commands
             printf("New connection , socket fd is %d , ip is : %s , port : %d \n", new_socket,
                    inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
 
-            //add new socket to array of sockets
+            // add new socket to array of sockets
             for (i = 0; i < max_clients; i++) {
-                //if position is empty 
+                // if position is empty
                 if (client_socket[i] == 0) {
                     client_socket[i] = new_socket;
                     printf("Adding to list of sockets as %d\n", i);
@@ -259,7 +259,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        //Handle IO operations on socket with incoming message
+        // Handle IO operations on socket with incoming message
         for (i = 0; i < max_clients; i++) {
             sd = client_socket[i];
 
