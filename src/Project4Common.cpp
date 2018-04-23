@@ -323,31 +323,68 @@ string base64Encode(const std::vector<char> &inputBuffer) {
     return output.str();
 }
 
+inline void fourByteToThreeByte(unsigned char *a3, const unsigned char *a4) {
+    a3[0] = static_cast<unsigned char>((a4[0] << 2) + ((a4[1] & 0x30) >> 4));
+    a3[1] = static_cast<unsigned char>(((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2));
+    a3[2] = static_cast<unsigned char>(((a4[2] & 0x3) << 6) + a4[3]);
+}
+
 vector<char> base64Decode(const string &inputString) {
-    Bitboi b;
     vector<char> result;
-    // TODO: initialize allocation to (3*((inputString.size() + 3)/4) chars
-    for (size_t i = 0; i + 3 < inputString.size(); i += 4) {
-        memset(&b, 0, 4);
-        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 0])] << 18;
-        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 1])] << 12;
-        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 2])] << 6;
-        b.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(inputString[i + 3])];
-        b.i = ntohl(b.i);
-        result.emplace_back(b.f.char1);
-        if (b.f.char2 != '\0')
-            result.emplace_back(b.f.char2);
-        if (b.f.char3 != '\0')
-            result.emplace_back(b.f.char3);
+
+    int fourByteCounter = 0;
+    unsigned char a4[4];
+
+    for (auto c : inputString) {
+        if (c == '=') {
+            break;
+        }
+
+        a4[fourByteCounter] = (unsigned char) c;
+        fourByteCounter++;
+        if (fourByteCounter == 4) {
+            for (int j = 0; j < 4; j++) {
+                a4[j] = BASE64_REVERSE_MAP[a4[j]];
+            }
+
+            unsigned char a3[3];
+            fourByteToThreeByte(a3, a4);
+            for (int j = 0; j < 3; j++) {
+                result.emplace_back(a3[j]);
+            }
+
+            fourByteCounter = 0;
+        }
     }
+
+    // If we have unwritten bytes
+    if (fourByteCounter > 0) {
+        // Zero out trailing bytes
+        for (int j = fourByteCounter; j < 4; j++) {
+            a4[j] = '\0';
+        }
+
+        // Convert each byte
+        for (int j = 0; j < 4; j++) {
+            a4[j] = BASE64_REVERSE_MAP[a4[j]];
+        }
+
+        unsigned char a3[3];
+        fourByteToThreeByte(a3, a4);
+        for (int j = 0; j < fourByteCounter - 1; j++) {
+            result.emplace_back(a3[j]);
+        }
+    }
+
     return result;
 }
 
-void writeBase64ToFile(const std::string &path, const std::string &data){
-    std::string* outString = new string();
-    Base64::Decode(data, outString);
+void writeBase64ToFile(const std::string &path, const std::string &data) {
+    // std::string* outString = new string();
+    // Base64::Decode(data, outString);
+    auto outString = base64Decode(data);
     std::ofstream fileWriter(path, std::ios::binary);
-    for(auto d : *outString) {
+    for (auto d : outString) {
         fileWriter.write(&d, sizeof(char));
     }
     fileWriter.close();
