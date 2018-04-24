@@ -72,6 +72,20 @@ void testBase64Encoding() {
 }
 
 void testBase64DecodingHappyString() {
+    string simpleString = "happy string2";
+    cout << "  Testing decoding to binary file" << endl;
+    string realEncoding;
+    Base64::Encode(simpleString, &realEncoding);
+    string realDecoding;
+    Base64::Decode(realEncoding, &realDecoding);
+    assert(realDecoding == simpleString);
+    cout << "    Target output: " << realDecoding << endl;
+    string myDecoding = base64Decode(realEncoding);
+    cout << "    Actual output: " << myDecoding << endl;
+    assert(myDecoding == realDecoding);
+}
+
+void testBase64DecodingBinaryFile() {
     cout << "  Testing decoding to binary file " << endl;
 
     string filepath = "testServerDir/blob.binary";
@@ -82,7 +96,6 @@ void testBase64DecodingHappyString() {
     string inputString(buffer.begin(), buffer.end());
     string realEncoding;
     Base64::Encode(inputString, &realEncoding);
-    cout << "    Target Output: \"" << realEncoding << "\"" << endl;
 
     string realDecoding;
     Base64::Decode(realEncoding, &realDecoding);
@@ -100,19 +113,6 @@ void testBase64DecodingHappyString() {
     MusicData inputDatum(filepath);
     MusicData outputDatum(outputFilepath);
     assert(inputDatum.getChecksum() == outputDatum.getChecksum());
-}
-
-void testBase64DecodingBinaryFile() {
-    string simpleString = "lalala happy string";
-    cout << "  Testing decoding to binary file" << endl;
-    string realEncoding;
-    Base64::Encode(simpleString, &realEncoding);
-    string realDecoding;
-    Base64::Decode(realEncoding, &realDecoding);
-    assert(realDecoding == simpleString);
-    cout << "    Target output: " << realDecoding << endl;
-    string myDecoding = base64Decode(realEncoding);
-    cout << "    Actual output: " << myDecoding << endl;
 }
 
 void testBase64Decoding() {

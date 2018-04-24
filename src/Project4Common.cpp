@@ -262,7 +262,7 @@ struct fourchar {
     char char2;
     char char3;
 };
-union Bitboi {
+union Bitmanip {
     fourchar f;
     uint32_t i;
 };
@@ -271,7 +271,7 @@ union Bitboi {
 string base64Encode(const std::vector<char> &inputBuffer) {
     stringstream output;
     uint8_t index;
-    Bitboi b;
+    Bitmanip b;
 
     for (size_t i = 0; i + 2 < inputBuffer.size(); i += 3) {
         // extract 3 bytes from the vector
@@ -296,7 +296,7 @@ string base64Encode(const std::vector<char> &inputBuffer) {
     switch (inputBuffer.size() % 3) {
         case 1:
             b.f.char1 = inputBuffer[inputBuffer.size() - 1];
-            b.i = htonl(*((uint32_t *) &b));
+            b.i = htonl(b.i);
             index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
             output << BASE64_CHARS[index];
             index = static_cast<uint8_t>((b.i & 0x00030000) >> 12);
@@ -307,7 +307,7 @@ string base64Encode(const std::vector<char> &inputBuffer) {
         case 2:
             b.f.char1 = inputBuffer[inputBuffer.size() - 2];
             b.f.char2 = inputBuffer[inputBuffer.size() - 1];
-            b.i = htonl(*((uint32_t *) &b));
+            b.i = htonl(b.i);
             index = static_cast<uint8_t>((b.i & 0x00FC0000) >> 18);
             output << BASE64_CHARS[index];
             index = static_cast<uint8_t>((b.i & 0x0003F000) >> 12);
@@ -322,58 +322,38 @@ string base64Encode(const std::vector<char> &inputBuffer) {
     return output.str();
 }
 
-inline void fourByteToThreeByte(unsigned char *a3, const unsigned char *a4) {
-    a3[0] = static_cast<unsigned char>((a4[0] << 2) + ((a4[1] & 0x30) >> 4));
-    a3[1] = static_cast<unsigned char>(((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2));
-    a3[2] = static_cast<unsigned char>(((a4[2] & 0x3) << 6) + a4[3]);
-}
-
 string base64Decode(const string &inputString) {
     vector<char> resultVector;
+    Bitmanip b_in;
+    Bitmanip b_out;
 
-    int fourByteCounter = 0;
-    unsigned char a4[4];
+    size_t i = 0;
+    for (; i + 3 < inputString.size(); i += 4) {
+        // Extract four bytes from the input string
+        b_in.f.padding = inputString[i + 0];
+        b_in.f.char1 = inputString[i + 1];
+        b_in.f.char2 = inputString[i + 2];
+        b_in.f.char3 = inputString[i + 3];
+        memset(&b_out, 0, 4);
 
-    for (char c : inputString) {
-        if (c == '=') {
-            break;
+        b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.padding)] << 18;
+        b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.char1)] << 12;
+        b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.char2)] << 6;
+        b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.char3)];
+        assert(static_cast<uint8_t>(b_out.f.char3) == 0);
+
+        // Reverse byte order
+        b_out.i = htonl(b_out.i);
+
+        resultVector.emplace_back(b_out.f.char1);
+        if (b_in.f.char2 != '=') {
+            resultVector.emplace_back(b_out.f.char2);
         }
-
-        a4[fourByteCounter] = (unsigned char) c;
-        fourByteCounter++;
-        if (fourByteCounter == 4) {
-            for (int j = 0; j < 4; j++) {
-                a4[j] = BASE64_REVERSE_MAP[a4[j]];
-            }
-
-            unsigned char a3[3];
-            fourByteToThreeByte(a3, a4);
-            for (int j = 0; j < 3; j++) {
-                resultVector.emplace_back(a3[j]);
-            }
-
-            fourByteCounter = 0;
-        }
-    }
-
-    // If we have unwritten bytes
-    if (fourByteCounter > 0) {
-        // Zero out trailing bytes
-        for (int j = fourByteCounter; j < 4; j++) {
-            a4[j] = '\0';
-        }
-
-        // Convert each byte
-        for (int j = 0; j < 4; j++) {
-            a4[j] = BASE64_REVERSE_MAP[a4[j]];
-        }
-
-        unsigned char a3[3];
-        fourByteToThreeByte(a3, a4);
-        for (int j = 0; j < fourByteCounter - 1; j++) {
-            resultVector.emplace_back(a3[j]);
+        if (b_in.f.char3 != '=') {
+            resultVector.emplace_back(b_out.f.char3);
         }
     }
+    assert(i == inputString.size());
     return string(resultVector.begin(), resultVector.end());
 }
 

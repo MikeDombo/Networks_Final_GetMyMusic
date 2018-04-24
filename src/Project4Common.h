@@ -32,7 +32,7 @@ using json = JSON;
 const double VERSION = 1.0;
 const std::string BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const char BASE64_PAD_CHAR = '=';
-const unsigned char BASE64_REVERSE_MAP[256] = { // 16x16 unsigned chars. Base64 ASCII subset
+const uint8_t BASE64_REVERSE_MAP[256] = { // 16x16 unsigned chars. Base64 ASCII subset
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 0, 0, 63,
