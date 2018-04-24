@@ -93,8 +93,12 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
     sendToSocket(sock, pushResponse);
 }
 
+void closeSocket(int sock, int* clientSockets, int clientSocketIndex){
+    clientSockets[clientSocketIndex] = 0;
+    close(sock);
+}
 
-void handleClient(int sock, const string &directory, int client_socket[], int client_sock_close_index,
+void handleClient(int sock, const string &directory, int* client_socket, int client_sock_close_index,
                   const string &logFilepath) {
     auto query = receiveUntilByteEquals(sock, '\n');
     try {
@@ -116,19 +120,18 @@ void handleClient(int sock, const string &directory, int client_socket[], int cl
                         string(" requested to push files ")).append(prettyListFiles(queryJ)), logFilepath);
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
-                client_socket[client_sock_close_index] = 0;
                 log("Client at " + getPeerStringFromSocket(sock) + " cleanly closed connection", logFilepath);
-                close(sock);
+                closeSocket(sock, client_socket, client_sock_close_index);
             } else {
                 cout << "Unknown type: " << type << endl;
-                close(sock);
+                closeSocket(sock, client_socket, client_sock_close_index);
             }
         }
 
         // Loop
     } catch (std::exception &e) {
         log("Client at " + getPeerStringFromSocket(sock) + " unexpectedly closed connection", logFilepath);
-        close(sock);
+        closeSocket(sock, client_socket, client_sock_close_index);
         return;
     }
 }
@@ -235,7 +238,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        if ((select(max_sd + 1, &readfds, NULL, NULL, NULL) < 0) && (errno != EINTR)) {
+        if ((select(max_sd + 1, &readfds, nullptr, nullptr, nullptr) < 0) && (errno != EINTR)) {
             printf("select() error");
         }
 
@@ -260,9 +263,8 @@ int main(int argc, char **argv) {
                     stringstream s;
                     s << "  Connection request granted; adding to list of sockets as " << i;
                     log(s.str(), logFilepath);
-
                     break;
-                } else {
+                } else if (i == max_clients - 1) {
                     log("  Connection request denied; no more sockets available", logFilepath);
                 }
             }
