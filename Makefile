@@ -83,6 +83,7 @@ tester: testFiles MessageTester Base64Tester
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
 	rm -f build/*
+	rm -f serverLog.txt
 
 testFiles:
 	@mkdir -p testClientDir testServerDir
