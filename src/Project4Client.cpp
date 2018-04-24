@@ -345,6 +345,11 @@ void handleSync(int sock) {
     }
     if (!isResponseComplete(pushResponse, pushRequest)) {
         cout << "Incomplete Push. Consider trying again." << endl;
+    } else {
+        cout << "Wrote to Server:" << endl;
+        for (auto fileDatum : pushResponse["response"]) {
+            cout << "  + " << fileDatum["filename"].getString() << endl;
+        }
     }
 
     sendToSocket(sock, pullRequest);
@@ -363,7 +368,8 @@ void handleSync(int sock) {
     for (string path : filepaths) {
         filenames.insert(getFilename(path));
     }
-    for (auto fileDatum: pullResponse["response"]) {  // always write as much as we can
+    cout << "Wrote to Client:" << endl;
+    for (auto fileDatum: pullResponse["response"]) {
         string filename = directory + filenameIncrement(fileDatum["filename"].getString(), filenames);
         writeBase64ToFile(filename, fileDatum["data"].getString());
         MusicData d(filename);
@@ -371,6 +377,8 @@ void handleSync(int sock) {
             std::cerr << "Checksum mismatch, probable write or decode error" << endl;
             // Delete the file
             remove(filename.c_str());
+        } else {
+            cout << "  + " << fileDatum["filename"].getString() << endl;
         }
     }
 }

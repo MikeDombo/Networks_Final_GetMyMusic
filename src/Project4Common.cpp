@@ -397,16 +397,23 @@ string getPeerStringFromSocket(int sock) {
     return clientInfo.str();
 }
 
-string prettyListFiles(const json &request) {
-    ssize_t numElements = (request["request"]).size();
+string prettyListFiles(const json &message) {
+    json dataPortion;
+    ssize_t numElements = 0;
+    if (message.hasKey("request")) {
+        dataPortion = message["request"];
+    } else if (message.hasKey("response")) {
+        dataPortion = message["response"];
+    }
+    numElements = dataPortion.size();
     if (numElements == 0) {
         return "()";
     }
     stringstream s;
     s << "(";
     for (int i = 0; i < numElements - 1; ++i) {
-        s << ((request["request"])[i])["filename"].getString() << ", ";
+        s << (dataPortion[i])["filename"].getString() << ", ";
     }
-    s << ((request["request"])[numElements - 1])["filename"].getString() << ")";
+    s << (dataPortion[numElements - 1])["filename"].getString() << ")";
     return s.str();
 }

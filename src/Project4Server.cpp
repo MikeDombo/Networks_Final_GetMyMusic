@@ -23,6 +23,7 @@ void log(const string &logMessage, const string &logFilepath) {
     stringstream outputMsg;
     outputMsg << "LOG: (Time: " << timeStr << ") " << logMessage << endl;
     ofstream fileWriter(logFilepath, std::ofstream::out | std::ofstream::app);  // append to log file if it exists
+    cout << outputMsg.str();
     fileWriter << outputMsg.str();
     fileWriter.close();
 }
@@ -43,6 +44,7 @@ void doListResponse(int sock, const string &directory) {
 }
 
 void doPullResponse(int sock, const string &directory, const json &pullRequest) {
+
     json pullResponse;
     pullResponse["version"] = VERSION;
     pullResponse["type"] = JSON("pullResponse", true);
@@ -80,7 +82,7 @@ void doPushResponse(int sock, const string &directory, const json &pushRequest) 
         string filename = directory + filenameIncrement(file["filename"].getString(), filenames);
         writeBase64ToFile(filename, file["data"].getString());
         MusicData d(filename);
-        if(d.getChecksum() != file["checksum"].getString()){
+        if (d.getChecksum() != file["checksum"].getString()) {
             std::cerr << "Checksum mismatch, probable write or decode error" << endl;
             // Delete the file
             remove(filename.c_str());
@@ -107,15 +109,13 @@ void handleClient(int sock, const string &directory, int client_socket[], int cl
                 doListResponse(sock, directory);
             } else if (type == "pullRequest") {
                 log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
-                        string(" requested to pull files")), logFilepath);
+                        string(" requested to pull files ")).append(prettyListFiles(queryJ)), logFilepath);
                 doPullResponse(sock, directory, queryJ);
-                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
-                        string(" requested to send some files")), logFilepath);
             } else if (type == "pushRequest") {
+                log(string("Client at ").append(getPeerStringFromSocket(sock)).append(
+                        string(" requested to push files ")).append(prettyListFiles(queryJ)), logFilepath);
                 doPushResponse(sock, directory, queryJ);
             } else if (type == "leave") {
-                cout << "Closing connection to client with sd: " << sock
-                     << " and index in arr: " << client_sock_close_index << endl;
                 client_socket[client_sock_close_index] = 0;
                 log("Client at " + getPeerStringFromSocket(sock) + " cleanly closed connection", logFilepath);
                 close(sock);
@@ -248,17 +248,22 @@ int main(int argc, char **argv) {
             }
 
             // inform user of socket number - used in send and receive commands
-            printf("New connection , socket fd is %d , ip is : %s , port : %d \n", new_socket,
-                   inet_ntoa(serverAddress.sin_addr), ntohs(serverAddress.sin_port));
+            stringstream msgStream;
+            msgStream << "New connection request from client at " << getPeerStringFromSocket(new_socket);
+            log(msgStream.str(), logFilepath);
 
             // add new socket to array of sockets
             for (int i = 0; i < max_clients; i++) {
                 // if position is empty
                 if (client_socket[i] == 0) {
                     client_socket[i] = new_socket;
-                    printf("Adding to list of sockets as %d\n", i);
+                    stringstream s;
+                    s << "  Connection request granted; adding to list of sockets as " << i;
+                    log(s.str(), logFilepath);
 
                     break;
+                } else {
+                    log("  Connection request denied; no more sockets available", logFilepath);
                 }
             }
         }
