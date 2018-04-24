@@ -340,7 +340,6 @@ string base64Decode(const string &inputString) {
         b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.char1)] << 12;
         b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.char2)] << 6;
         b_out.i |= BASE64_REVERSE_MAP[static_cast<uint8_t>(b_in.f.char3)];
-        assert(static_cast<uint8_t>(b_out.f.char3) == 0);
 
         // Reverse byte order
         b_out.i = htonl(b_out.i);
@@ -353,7 +352,7 @@ string base64Decode(const string &inputString) {
             resultVector.emplace_back(b_out.f.char3);
         }
     }
-    assert(i == inputString.size());
+
     return string(resultVector.begin(), resultVector.end());
 }
 
