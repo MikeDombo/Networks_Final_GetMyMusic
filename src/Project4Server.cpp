@@ -128,6 +128,7 @@ void handleClient(int sock, const string &directory, int client_socket[], int cl
         // Loop
     } catch (std::exception &e) {
         log("Client at " + getPeerStringFromSocket(sock) + " unexpectedly closed connection", logFilepath);
+        close(sock);
         return;
     }
 }
@@ -212,7 +213,6 @@ int main(int argc, char **argv) {
 
     // Constantly listen for clients
     while (true) {
-
         // clear the socket set
         FD_ZERO(&readfds);
 
