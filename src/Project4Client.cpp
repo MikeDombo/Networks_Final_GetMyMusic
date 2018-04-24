@@ -295,7 +295,6 @@ void printDiff(const json &diffJSON) {
     for (auto fileish: pushRequest["request"]) {
         cout << "\t+ " << fileish["filename"].getString() << endl;
     }
-    cout << endl;
 }
 
 void handleDiff(int sock) {
@@ -309,6 +308,7 @@ void handleDiff(int sock) {
 
     auto diffJSON = doDiff(listResponse);
     printDiff(diffJSON);
+    cout << "=====================" << endl << endl;
 }
 
 bool isResponseComplete(const json &response, const json &request) {
@@ -348,7 +348,7 @@ void handleSync(int sock) {
     } else {
         cout << "Wrote to Server:" << endl;
         for (auto fileDatum : pushResponse["response"]) {
-            cout << "  + " << fileDatum["filename"].getString() << endl;
+            cout << "\t+ " << fileDatum["filename"].getString() << endl;
         }
     }
 
@@ -378,9 +378,10 @@ void handleSync(int sock) {
             // Delete the file
             remove(filename.c_str());
         } else {
-            cout << "  + " << fileDatum["filename"].getString() << endl;
+            cout << "\t+ " << fileDatum["filename"].getString() << endl;
         }
     }
+    cout << "=====================" << endl << endl;
 }
 
 void interruptHandler(int s) {
