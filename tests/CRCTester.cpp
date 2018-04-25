@@ -22,15 +22,37 @@ string libBasedChecksum(const string& filepath) {
     return stream.str();
 }
 
-int main() {
-    cout << "Testing checksum for binary file" << endl;
-    // Toy example from Ch. 3 of http://chrisballance.com/wp-content/uploads/2015/10/CRC-Primer.html
-    string test2 = libBasedChecksum("testServerDir/d.txt");
-    string res2 = computeCRC("testServerDir/d.txt");
-    cout << "Target: " << test2 << endl;
-    cout << "Actual: " << hex << res2 << endl;
+void testFileD() {
+    cout << "Testing checksum for single-letter file: testServerDir/d.txt" << endl;
+    string target = libBasedChecksum("testServerDir/d.txt");
+    string actual = computeCRC("testServerDir/d.txt");
+    cout << "Target: " << target << endl;
+    cout << "Actual: " << actual << endl;
+    assert(target == actual);
+}
 
-    assert(res2 == test2);
+void testFileEmpty() {
+    cout << "Testing checksum for empty file: testClientDir/emptyFile" << endl;
+    string target = libBasedChecksum("testClientDir/emptyFile");
+    string actual = computeCRC("testClientDir/emptyFile");
+    cout << "Target: " << target << endl;
+    cout << "Actual: " << actual << endl;
+    assert(target == actual);
+}
+
+void testFileBinary() {
+    cout << "Testing checksum for binary file: testServerDir/blob.binary" << endl;
+    string target = libBasedChecksum("testServerDir/blob.binary");
+    string actual = computeCRC("testServerDir/blob.binary");
+    cout << "Target: " << target << endl;
+    cout << "Actual: " << actual << endl;
+    assert(target == actual);
+}
+
+int main() {
+  testFileD();
+  testFileEmpty();
+  testFileBinary();
 }
 
 
