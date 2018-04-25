@@ -358,7 +358,7 @@ string base64Decode(const string &inputString) {
 
 // This is just so I can comment out all the debug statements at once
 void debug(const std::string &debugMessage) {
-    std::cout << debugMessage << std::endl;
+    //std::cout << debugMessage << std::endl;
 }
 
 void writeBase64ToFile(const std::string &path, const std::string &data) {
