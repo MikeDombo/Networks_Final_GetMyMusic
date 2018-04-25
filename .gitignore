@@ -47,3 +47,4 @@ JSONTest
 Base64Tester
 build/*
 MessageTester
+CRCTester

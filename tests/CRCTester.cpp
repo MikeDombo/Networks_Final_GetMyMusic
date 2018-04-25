@@ -1,9 +1,10 @@
 #include "../src/Project4Common.h"
 #include "../src/lib/CRC32.h"
 #include <assert.h>     // to use assert statements in our tester
-#include <bitset>         // std::bitset
 
-uint32_t CRCTable[] = {
+// I have legit no idea why this works but it's from
+// https://msdn.microsoft.com/en-us/library/dd905031.aspx
+uint32_t CRCTable[] = {  
         0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,
         0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
         0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
@@ -85,7 +86,6 @@ using std::hex;
 using std::exception;
 using std::set;
 using std::map;
-using std::bitset;
 
 string libBasedChecksum(const string& filepath) {
     CRC32 crc32;
@@ -120,16 +120,11 @@ uint32_t checksumInternals(const char* inputBuffer, size_t inputSize) {
 
 string myChecksum(const string& filepath) {
     ifstream inpt(filepath.c_str(), std::ios_base::binary);
-    if (not inpt.is_open() or not inpt.good()) {
-        throw std::exception();
-    }
-    long length = inpt.gcount();
-    if (length <= 0) {
-        return "0";
-    }
+    inpt.seekg(0, inpt.end);
+    size_t length = inpt.tellg();
+    inpt.seekg(0, inpt.beg);
     char* buffer = new char[length];
     inpt.read(buffer,length);
-    cout << buffer << endl;
     uint32_t res = checksumInternals(buffer, length);
     stringstream s;
     s << hex << res;
@@ -151,13 +146,13 @@ int main() {
     cout << "Target: 906319F2" << endl;
     cout << "Actual: " << hex << res1 << endl;
 
-    cout << "Target:" << libBasedChecksum("testServerDir/d.txt") << endl;
-    cout << "Actual: " << hex << myChecksum("testServerDir/d.txt") << endl;
+    string test2 = libBasedChecksum("testServerDir/d.txt");
+    string res2 = myChecksum("testServerDir/d.txt");
+    cout << "Target: " << test2 << endl;
+    cout << "Actual: " << hex << res2 << endl;
 
     assert(res1 == 0x906319F2);
-//
-//    assert(myChecksum("testServerDir/e.txt") == "b9866403");
-//    assert(myChecksum("testServerDir/emptyFile") == "0");
+    assert(res2 == test2);
 }
 
 
