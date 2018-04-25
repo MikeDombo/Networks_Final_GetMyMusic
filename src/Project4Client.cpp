@@ -378,7 +378,7 @@ void handleSync(int sock) {
             // Delete the file
             remove(filename.c_str());
         } else {
-            cout << "\t+ " << fileDatum["filename"].getString() << endl;
+            cout << "\t+ " << filename << endl;
         }
     }
     cout << "=====================" << endl << endl;
