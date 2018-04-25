@@ -36,6 +36,9 @@ MessageTester: build/MessageTester.o build/Project4Common.o build/CRC32.o build/
 Base64Tester: build/Base64Tester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/Base64Tester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o Base64Tester
 
+CRCTester: build/CRCTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/CRCTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o CRCTester
+
 
 ################################################################################
 # Object Files
@@ -65,6 +68,9 @@ build/MessageTester.o: tests/MessageTester.cpp
 build/Base64Tester.o: tests/Base64Tester.cpp
 	$(CC) $(CFLAGS) tests/Base64Tester.cpp -o build/Base64Tester.o
 
+build/CRCTester.o: tests/CRCTester.cpp
+	$(CC) $(CFLAGS) tests/CRCTester.cpp -o build/CRCTester.o
+
 
 ################################################################################
 # "Tasks" to run before or after making the executables
@@ -76,9 +82,10 @@ client: testFiles Project4Client
 server: testFiles Project4Server
 	@./Project4Server -p 30600 -d ./testServerDir
 
-tester: testFiles MessageTester Base64Tester
+tester: testFiles MessageTester Base64Tester CRCTester
 	@./MessageTester
 	@./Base64Tester
+	@./CRCTester
 
 clean: testFiles
 	rm -f *.o $(EXECUTABLE)
