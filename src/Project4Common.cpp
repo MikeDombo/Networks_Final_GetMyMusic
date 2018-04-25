@@ -90,7 +90,9 @@ string MusicData::b64Encode() {
 
 string MusicData::makeChecksum() {
     debug("MusicData::makeChecksum(): Computing checksum for " + getFilename());
-    return computeCRC(this->path);
+    string crc = computeCRC(this->path);
+    debug("MusicData::makeChecksum(): Returning " + crc);
+    return crc;
 }
 
 bool isDirectory(const string &path) {

@@ -303,11 +303,13 @@ void printDiff(const json &diffJSON) {
     cout << "On Server but not on Client:" << endl;
     for (auto file: pullRequest["request"]) {
         cout << "\t+ " << file["filename"].getString() << endl;
+        debug("\t\t Checksum: " + file["checksum"].getString());
     }
 
     cout << "On Client but not on Server:" << endl;
     for (auto fileish: pushRequest["request"]) {
-        cout << "\t+ " << fileish["filename"].getString() << " (" << fileish["checksum"].getString() << ")" << endl;
+        cout << "\t+ " << fileish["filename"].getString() << endl;
+        debug("\t\t Checksum: " + fileish["checksum"].getString());
     }
 }
 
