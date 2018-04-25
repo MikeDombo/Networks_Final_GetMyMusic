@@ -89,6 +89,7 @@ string MusicData::b64Encode() {
 }
 
 string MusicData::makeChecksum() {
+    debug("MusicData::makeChecksum(): Computing checksum for " + getFilename());
     return computeCRC(this->path);
 }
 
@@ -351,6 +352,11 @@ string base64Decode(const string &inputString) {
     }
 
     return string(resultVector.begin(), resultVector.end());
+}
+
+// This is just so I can comment out all the debug statements at once
+void debug(const std::string &debugMessage) {
+    std::cout << debugMessage << std::endl;
 }
 
 void writeBase64ToFile(const std::string &path, const std::string &data) {

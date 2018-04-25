@@ -130,6 +130,7 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
     for (auto iter = clientMap.begin(); iter != clientMap.end(); ++iter) {
         string cCsum = iter->first;
         set<string> cFnames = iter->second;
+        debug("  Looking at client file(s) with checksum " + cCsum);
         set<string> tmpFnames;
 
         if (serverMap.find(cCsum) != serverMap.end()) {     // if the server also has a file w/that checksum
@@ -138,11 +139,13 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             duplB["clientFilenames"] = setToJsonList(cFnames);
             tmpFnames = serverMap.at(cCsum);
             duplB["serverFilenames"] = setToJsonList(tmpFnames);
+            debug("    Found matching file(s) on server: " + duplB["serverFilenames"].stringify());
             diffJSON["duplicateBothClientServer"].push(duplB);
         } else if (cFnames.size() > 1) {
             json duplC;
             duplC["checksum"] = cCsum;
             duplC["filenames"] = setToJsonList(cFnames);
+            debug("    Found multiple files matching the checksum, only on the client: " + duplC["filenames"].stringify());
             diffJSON["duplicateOnlyClient"].push(duplC);
             // if the lexicographically first duplicate filename on the client is also in serverFilenames, we have a conflict.
             string firstFname = (duplC["filenames"])[0].getString();
@@ -151,22 +154,26 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             json uniqueC;
             uniqueC["checksum"] = cCsum;
             string fname = *(cFnames.begin());
+            debug("    Only 1 file matches the checksum, on client: " + fname);
             uniqueC["filename"] = fname;
             diffJSON["uniqueOnlyClient"].push(uniqueC);
             considerFileConflict(diffJSON, fname, serverFilenameSet, true);
         }
     }
+    debug("  Finished iterating through client checksums. Iterating through server checksums.");
 
     // iterate through serverMap, classifying checksums
     for (auto iter = serverMap.begin(); iter != serverMap.end(); ++iter) {
         string sCsum = iter->first;
         set<string> sFnames = iter->second;
+        debug("  Looking at server file(s) with checksum " + sCsum);
         if (clientMap.find(sCsum) != clientMap.end()) {     // if the client also has a file w/that checksum
-            continue;  // because we've already handled it
+            debug("    Found matching file(s) on client");  // do nothing because we've already handled it
         } else if (sFnames.size() > 1) {
             json duplS;
             duplS["checksum"] = sCsum;
             duplS["filenames"] = setToJsonList(sFnames);
+            debug("    Found multiple files matching the checksum, only on the server: " + duplS["filenames"].stringify());
             diffJSON["duplicateOnlyServer"].push(duplS);
             // if the lexicographically first duplicate filename on the server is also in clientFilenames, we have a conflict.
             string firstFname = (duplS["filenames"])[0].getString();
@@ -175,6 +182,7 @@ json createDiffJSON(const map<string, set<string> > &clientMap, const set<string
             json uniqueS;
             uniqueS["checksum"] = sCsum;
             string fname = *(sFnames.begin());
+            debug("    Only 1 file matches the checksum, on server: " + fname);
             uniqueS["filename"] = fname;
             diffJSON["uniqueOnlyServer"].push(uniqueS);
             considerFileConflict(diffJSON, fname, clientFilenameSet, false);
@@ -193,6 +201,7 @@ json doDiff(json listResponse) {
      *  return a json struct of that for further use
      */
 
+    debug("In doDiff(" + listResponse.stringify() + ")");
     map<string, set<string>> clientMap;
     set<string> clientFilenameSet = set<string>();
     auto clientMusicDataList = list(directory);
@@ -201,6 +210,7 @@ json doDiff(json listResponse) {
     for (auto musicDatum: clientMusicDataList) {
         string cFname = musicDatum.getFilename();
         string cCsum = musicDatum.getChecksum();
+        debug("  Looking at client file " + cFname + " with checksum " + cCsum);
 
         clientFilenameSet.insert(cFname);                // add filename (guaranteed unique locally) to set
         // Build the client map
@@ -222,6 +232,7 @@ json doDiff(json listResponse) {
         if (file.hasKey("checksum") && file.hasKey("filename")) {
             string sFname = file["filename"].getString();
             string sCsum = file["checksum"].getString();
+            debug("  Looking at client file " + sFname + " with checksum " + sCsum);
             serverFilenameSet.insert(sFname); // add filename (guaranteed unique locally) to set
 
             // If the checksum isn't in the map, then create a new set and map checksum to set
@@ -285,6 +296,9 @@ json createPullRequestFromDiffJSON(const json &diffStruct) {
 void printDiff(const json &diffJSON) {
     auto pullRequest = createPullRequestFromDiffJSON(diffJSON);
     auto pushRequest = createPushRequestFromDiffJSON(diffJSON);
+
+    debug("  Corresponding pullRequest: " + pullRequest.stringify());
+    debug("  Corresponding pushRequest: " + pushRequest.stringify());
 
     cout << "On Server but not on Client:" << endl;
     for (auto file: pullRequest["request"]) {

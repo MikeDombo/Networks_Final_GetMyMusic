@@ -103,6 +103,7 @@ void handleClient(int sock, const string &directory, int* client_socket, int cli
     auto query = receiveUntilByteEquals(sock, '\n');
     try {
         auto queryJ = json(query);  // will throw an exception if invalid JSON received
+        debug("Received: " + queryJ.stringify());
 
         if (verifyJSONPacket(queryJ)) {
             string type = queryJ["type"].getString();
