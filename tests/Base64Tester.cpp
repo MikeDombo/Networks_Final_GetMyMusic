@@ -1,5 +1,5 @@
 #include "../src/Project4Common.h"
-#include "../src/lib/base64.h" // to check if our homebrewed b64 fxns match the library functionality
+#include "../tests/lib/base64.h" // to check if our homebrewed b64 fxns match the library functionality
 #include <assert.h>     // to use assert statements in our tester
 
 using std::string;

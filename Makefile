@@ -9,7 +9,7 @@ CFLAGS+=-fsanitize=address
 LDFLAGS+=-fsanitize=address
 endif
 
-EXECUTABLE=Project4Server Project4Client JSONTest
+EXECUTABLE=Project4Server Project4Client JSONTest MessageTester Base64Tester CRCTester
 
 all: testFiles $(EXECUTABLE)
 
@@ -36,8 +36,8 @@ MessageTester: build/MessageTester.o build/Project4Common.o build/CRC32.o build/
 Base64Tester: build/Base64Tester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
 	$(CC) $(LDFLAGS) build/Base64Tester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o Base64Tester
 
-CRCTester: build/CRCTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o
-	$(CC) $(LDFLAGS) build/CRCTester.o build/Project4Common.o build/CRC32.o build/HappyPathJSON.o -o CRCTester
+CRCTester: build/CRCTester.o build/Project4Common.o build/CRC32.o build/proCRC32.o build/HappyPathJSON.o
+	$(CC) $(LDFLAGS) build/CRCTester.o build/Project4Common.o build/CRC32.o build/proCRC32.o build/HappyPathJSON.o -o CRCTester
 
 
 ################################################################################
@@ -53,8 +53,11 @@ build/Project4Client.o: src/Project4Client.cpp
 build/Project4Server.o: src/Project4Server.cpp
 	$(CC) $(CFLAGS) src/Project4Server.cpp -o build/Project4Server.o
 
-build/CRC32.o: src/lib/CRC32.cpp src/lib/CRC32.h
-	$(CC) $(CFLAGS) src/lib/CRC32.cpp -o build/CRC32.o
+build/CRC32.o: src/CRC32.cpp src/CRC32.h
+	$(CC) $(CFLAGS) src/CRC32.cpp -o build/CRC32.o
+
+build/proCRC32.o: tests/lib/CRC32.cpp tests/lib/CRC32.h
+	$(CC) $(CFLAGS) tests/lib/CRC32.cpp -o build/proCRC32.o
 
 build/HappyPathJSON.o: src/HappyPathJSON.cpp src/HappyPathJSON.h
 	$(CC) $(CFLAGS) src/HappyPathJSON.cpp -o build/HappyPathJSON.o

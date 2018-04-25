@@ -25,7 +25,7 @@
 #include <map>
 
 #include "HappyPathJSON.h"
-#include "lib/CRC32.h"
+#include "CRC32.h"
 
 using json = JSON;
 
